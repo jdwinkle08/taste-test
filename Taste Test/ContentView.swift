@@ -1,122 +1,256 @@
 import SwiftUI
+import AVFoundation
+import PhotosUI
 
 struct ContentView: View {
     @State private var messages: [Message] = [] // Array of messages
     @State private var currentMessage: String = "" // Current text input
     @State private var showSendButton: Bool = false // Controls send button visibility
-    @State private var isLoading: Bool = false
-    
+    @State private var isCameraActive: Bool = false // Camera activation state
+    @State private var capturedImage: UIImage? = nil // Captured image from the camera
+    @State private var isPaneOpen: Bool = false // Side pane toggle
+    @State private var dragOffset: CGFloat = 0.0 // Tracks drag offset for the pane
+    @State private var isLoading: Bool = false // Tracks if an OpenAI request is in progress
+
+
     var body: some View {
-        VStack {
-            // Chat Window
-            ScrollView {
-                VStack(alignment: .leading, spacing: 6) { // Smaller spacing between bubbles
-                    ForEach(messages) { message in
-                        HStack {
-                            if message.isUser {
-                                Spacer()
-                                Text(message.text)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
+        ZStack {
+            // Main Content
+            VStack {
+                // Header
+                HStack {
+                    // Menu Button
+                    Button(action: {
+                        withAnimation {
+                            isPaneOpen.toggle()
+                        }
+                    }) {
+                        Image(systemName: "line.horizontal.3")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.leading, 16)
+
+                    Spacer()
+
+                    // Header Text with "Jeff" bolded
+                    Text("Hey, ")
+                        .font(.system(size: 18))
+                        .foregroundColor(.black)
+                    +
+                    Text("Jeff")
+                        .font(.system(size: 18))
+                        .foregroundColor(.black)
+                    +
+                    Text(" 👋")
+                        .font(.system(size: 18))
+                        .foregroundColor(.black)
+
+                    Spacer()
+
+                    // Placeholder for symmetry
+                    Spacer().frame(width: 40) // Matches the width of the button
+                }
+                .padding(.top, 16) // Adjust based on notch height
+                .padding(.bottom, 8)
+
+                // Chat Window
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(messages) { message in
+                            if message.isImage, let image = message.image {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: 250)
                                     .cornerRadius(20)
-                                    .frame(maxWidth: 250, alignment: .trailing)
+                                    .padding(.horizontal, 8)
                             } else {
-                                Text(message.text)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 8)
-                                    .background(Color(.systemGray5))
-                                    .foregroundColor(.black)
-                                    .cornerRadius(20)
-                                    .frame(maxWidth: 250, alignment: .leading)
-                                Spacer()
+                                HStack {
+                                    if message.isUser {
+                                        Spacer()
+                                        Text(message.text)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 8)
+                                            .background(Color.blue)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(20)
+                                            .frame(maxWidth: 250, alignment: .trailing)
+                                    } else {
+                                        Text(message.text)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 8)
+                                            .background(Color(.systemGray5))
+                                            .foregroundColor(.black)
+                                            .cornerRadius(20)
+                                            .frame(maxWidth: 250, alignment: .leading)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.horizontal, 8)
                             }
                         }
-                        .padding(.horizontal, 8) // Reduced horizontal padding for cleaner alignment
                     }
+                    .padding(.top, 8)
                 }
-                .padding(.top, 8) // Add a little spacing at the top of the chat
-            }
-            
-            // Instruction Rectangles
-            HStack(spacing: 10) { // Equal spacing between bubbles
-                InstructionRectangle(
-                    text: "First, take a photo of the menu ↗",
-                    backgroundColor: Color.blue,
-                    textColor: Color.white,
-                    isBold: true
-                )
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4) // Soft shadow with subtle offset
-                InstructionRectangle(
-                    text: "🥇 Get the top choices",
-                    backgroundColor: Color(.systemGray5),
-                    textColor: Color.black,
-                    isBold: false
-                )
-                InstructionRectangle(
-                    text: "🧑‍🍳 Ask follow ups",
-                    backgroundColor: Color(.systemGray5),
-                    textColor: Color.black,
-                    isBold: false
-                )
-            }
-            .frame(maxWidth: .infinity) // Ensures the HStack stretches across the available width
-            .padding(.horizontal, 16) // Adds equal padding to the left and right of the entire group
-            
-            // Input Box
-            HStack {
-                TextField("Type Message", text: $currentMessage)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color(.systemGray4), lineWidth: 1)
+
+                // Instruction Rectangles
+                HStack(spacing: 10) {
+                    Button(action: {
+                        isCameraActive = true
+                    }) {
+                        Text("First, take a photo of the menu ↗")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.blue)
+                            .cornerRadius(12)
+                            .scaleEffect(isCameraActive ? 0.95 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: isCameraActive)
+                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .fullScreenCover(isPresented: $isCameraActive) {
+                        ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage) { image in
+                            if let image = image {
+                                messages.append(Message(image: image))
+                            }
+                        }
+                    }
+
+                    InstructionRectangle(
+                        text: "🥇 Get the top choices",
+                        backgroundColor: Color(.systemGray5),
+                        textColor: Color.black,
+                        isBold: false
                     )
-                    .autocorrectionDisabled(false) // Enables autocorrection
-                    .textInputAutocapitalization(.sentences) // Capitalizes the first word in a sentence
-                    .overlay(
-                        HStack {
-                            Spacer()
-                            if showSendButton {
-                                Button(action: sendMessage) {
-                                    Image(systemName: "paperplane.fill")
-                                        .foregroundColor(.blue)
-                                        .padding(.trailing, 12)
+                    InstructionRectangle(
+                        text: "🧑‍🍳 Ask follow ups",
+                        backgroundColor: Color(.systemGray5),
+                        textColor: Color.black,
+                        isBold: false
+                    )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+
+                // Input Box
+                HStack {
+                    TextField("Type Message", text: $currentMessage)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
+                        .autocorrectionDisabled(false)
+                        .textInputAutocapitalization(.sentences)
+                        .overlay(
+                            HStack {
+                                Spacer()
+                                if showSendButton {
+                                    Button(action: sendMessage) {
+                                        Image(systemName: "paperplane.fill")
+                                            .foregroundColor(.blue)
+                                            .padding(.trailing, 12)
+                                    }
                                 }
                             }
+                        )
+                        .onChange(of: currentMessage) { newValue in
+                            showSendButton = !newValue.isEmpty
                         }
-                    )
-                    .onChange(of: currentMessage) { newValue in
-                        showSendButton = !newValue.isEmpty // Show/hide send button based on input
-                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .background(
+                Color(.systemBackground)
+                    .overlay(isPaneOpen ? Color.black.opacity(0.3) : Color.clear)
+                    .animation(.easeInOut, value: isPaneOpen)
+                    .onTapGesture {
+                        if isPaneOpen {
+                            withAnimation {
+                                isPaneOpen = false
+                            }
+                        }
+                    }
+            )
+
+            // Side Pane
+            HStack {
+                VStack {
+                    Spacer()
+                    // Settings Button (no badge)
+                    Button(action: {
+                        print("Settings tapped!")
+                    }) {
+                        HStack {
+                            Image(systemName: "gear")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                            Text("Settings")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.leading, 16) // Adjust to left-align
+                        .padding(.vertical, 12)
+                    }
+                    .padding(.bottom, 16)
+                }
+                .frame(width: 240) // Adjusted width for better layout
+                .background(
+                    Color.white
+                        .cornerRadius(16, corners: [.topRight, .bottomRight])
+                        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
+                )
+                .edgesIgnoringSafeArea(.all) // Ensures pane spans full height
+                Spacer()
+            }
+            .offset(x: isPaneOpen ? 0 : -240 + dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let translation = value.translation.width
+                        dragOffset = max(-240, min(0, translation))
+                    }
+                    .onEnded { value in
+                        if dragOffset > -120 {
+                            withAnimation {
+                                isPaneOpen = true
+                            }
+                        } else {
+                            withAnimation {
+                                isPaneOpen = false
+                            }
+                        }
+                        dragOffset = 0
+                    }
+            )
+            .animation(.easeInOut, value: isPaneOpen)
         }
-        .background(Color(.systemBackground))
     }
     
     func sendMessage() {
         guard !currentMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let userMessage = Message(text: currentMessage, isUser: true)
-        messages.append(userMessage) // Add user's message
-        currentMessage = "" // Clear the input box
-        showSendButton = false // Hide send button
-        
-        // Call OpenAI API to get the response
+        messages.append(userMessage)
+        currentMessage = ""
+        showSendButton = false
+
+        // Call OpenAI API
         callOpenAIAPI(for: userMessage.text)
     }
-    
+
     func callOpenAIAPI(for message: String) {
         isLoading = true
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String else {
             fatalError("API Key not found in Secrets.xcconfig")
         }
         let endpoint = "https://api.openai.com/v1/chat/completions"
-        
-        // Create request payload
+
         let payload: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": [
@@ -124,75 +258,38 @@ struct ContentView: View {
                 ["role": "user", "content": message]
             ]
         ]
-        
-        // Convert payload to JSON
+
         guard let url = URL(string: endpoint),
-              let httpBody = try? JSONSerialization.data(withJSONObject: payload) else {
-            print("Error: Failed to create request payload.")
-            isLoading = false
-            return
-        }
-        
-        // Create the request
+              let httpBody = try? JSONSerialization.data(withJSONObject: payload) else { return }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = httpBody
-        
-        // Perform the API call
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                self.isLoading = false
+                isLoading = false
             }
-            
+
             if let error = error {
                 print("Error calling OpenAI API: \(error.localizedDescription)")
                 return
             }
-            
-            // Log the HTTP response status code
-            if let httpResponse = response as? HTTPURLResponse {
-                print("HTTP Response Status Code: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 200 {
-                    print("Unexpected HTTP status code.")
-                }
-            }
-            
-            // Log the raw data received
-            if let data = data {
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Raw JSON response: \(jsonString)")
-                }
-            } else {
-                print("Error: No data received from OpenAI API.")
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let firstChoice = choices.first,
+                  let messageDict = firstChoice["message"] as? [String: Any],
+                  let content = messageDict["content"] as? String else {
+                print("Invalid response from OpenAI API")
                 return
             }
-            
-            // Parse the JSON response
-            do {
-                guard let data = data,
-                      let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    print("Error: Unable to parse JSON.")
-                    return
-                }
-                print("Parsed JSON: \(json)")
-                
-                guard let choices = json["choices"] as? [[String: Any]],
-                      let firstChoice = choices.first,
-                      let messageDict = firstChoice["message"] as? [String: Any],
-                      let content = messageDict["content"] as? String else {
-                    print("Error: Missing 'choices' or 'message' in the response.")
-                    return
-                }
-                
-                // Add OpenAI's response to the chat
-                let assistantMessage = Message(text: content, isUser: false)
-                DispatchQueue.main.async {
-                    self.messages.append(assistantMessage)
-                }
-            } catch {
-                print("Error decoding JSON: \(error.localizedDescription)")
+
+            DispatchQueue.main.async {
+                messages.append(Message(text: content, isUser: false))
             }
         }.resume()
     }
@@ -207,27 +304,102 @@ struct InstructionRectangle: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 14, weight: isBold ? .bold : .regular)) // Bold for the first rectangle
-            .multilineTextAlignment(.leading) // Left-align text
-            .lineLimit(2) // Ensures text wraps to two lines
-            .padding(.horizontal, 12) // Inner padding for text
-            .padding(.vertical, 8) // Inner padding for text
+            .font(.system(size: 14, weight: isBold ? .bold : .regular))
+            .multilineTextAlignment(.leading)
+            .lineLimit(2)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(backgroundColor)
             .foregroundColor(textColor)
             .cornerRadius(12)
-            .fixedSize(horizontal: false, vertical: true) // Dynamically resizes horizontally for content
+            .fixedSize(horizontal: false, vertical: true)
     }
+}
+
+// Image picker component
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+    @Binding var selectedImage: UIImage?
+    var onImagePicked: (UIImage?) -> Void
+
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: ImagePicker
+
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            parent.isPresented = false
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+                parent.onImagePicked(image)
+            }
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.isPresented = false
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .camera
+        picker.cameraDevice = .rear
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
 
 // Chat Message Model
 struct Message: Identifiable {
     let id = UUID()
     let text: String
-    let isUser: Bool // True if sent by the user, false if received
+    let isUser: Bool
+    let isImage: Bool
+    let image: UIImage?
+
+    init(text: String, isUser: Bool) {
+        self.text = text
+        self.isUser = isUser
+        self.isImage = false
+        self.image = nil
+    }
+
+    init(image: UIImage) {
+        self.text = ""
+        self.isUser = true
+        self.isImage = true
+        self.image = image
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect,
+                                byRoundingCorners: corners,
+                                cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
