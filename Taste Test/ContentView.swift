@@ -63,12 +63,16 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(messages) { message in
                             if message.isImage, let image = message.image {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: 250)
-                                    .cornerRadius(20)
-                                    .padding(.horizontal, 8)
+                                // Added Spacer() to push the image to the right
+                                HStack {
+                                    Spacer() // Push the image to the right
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(maxWidth: 250)
+                                        .cornerRadius(20)
+                                        .padding(.horizontal, 8)
+                                }
                             } else {
                                 HStack {
                                     if message.isUser {
@@ -116,7 +120,7 @@ struct ContentView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .fullScreenCover(isPresented: $isCameraActive) {
-                        ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage) { image in
+                        ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
                             if let image = image {
                                 messages.append(Message(image: image))
                             }
@@ -211,8 +215,12 @@ struct ContentView: View {
             if isMenuVisible {
                 VStack(alignment: .leading, spacing: 30) {
                     Button(action: {
-                        isMenuVisible = false
-                        isCameraActive = true
+                        withAnimation {
+                            isMenuVisible = false
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            isCameraActive = true
+                        }
                     }) {
                         HStack(spacing: 22) {
                             Image("cameraAppIcon")
@@ -224,14 +232,17 @@ struct ContentView: View {
                                 .font(.system(size: 24))
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button(action: {
-                        isMenuVisible = false
-                        isPhotoPickerActive = true
+                        withAnimation {
+                            isMenuVisible = false
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            isPhotoPickerActive = true
+                        }
                     }) {
                         HStack(spacing: 22) {
-                            Image("photosAppIcon") // Use the custom photos icon
+                            Image("photosAppIcon")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 36, height: 36)
@@ -240,21 +251,15 @@ struct ContentView: View {
                                 .font(.system(size: 24))
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .scaleEffect(menuScale)
+                .opacity(menuOpacity)
                 .frame(width: 250)
-                .position(x: 150, y: UIScreen.main.bounds.height - 218) // Adjusts position above the button
+                .position(x: 150, y: UIScreen.main.bounds.height - 218) // Adjust position
             }
         }
         .sheet(isPresented: $isPhotoPickerActive) {
-            ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage) { image in
-                if let image = image {
-                    messages.append(Message(image: image))
-                }
-            }
-        }
-        .fullScreenCover(isPresented: $isCameraActive) {
-            ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage) { image in
+            ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage, sourceType: .photoLibrary) { image in
                 if let image = image {
                     messages.append(Message(image: image))
                 }
@@ -268,10 +273,11 @@ struct ContentView: View {
         messages.append(userMessage)
         currentMessage = ""
         showSendButton = false
-
+        
         // Call OpenAI API
         callOpenAIAPI(for: userMessage.text)
     }
+
 
     func callOpenAIAPI(for message: String) {
         isLoading = true
@@ -345,10 +351,11 @@ struct InstructionRectangle: View {
     }
 }
 
-// Image picker component
+// Image Picker Component
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     @Binding var selectedImage: UIImage?
+    var sourceType: UIImagePickerController.SourceType
     var onImagePicked: (UIImage?) -> Void
 
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
@@ -359,11 +366,11 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            parent.isPresented = false
             if let image = info[.originalImage] as? UIImage {
                 parent.selectedImage = image
                 parent.onImagePicked(image)
             }
+            parent.isPresented = false
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
@@ -378,8 +385,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-        picker.sourceType = .camera
-        picker.cameraDevice = .rear
+        picker.sourceType = sourceType
         return picker
     }
 
