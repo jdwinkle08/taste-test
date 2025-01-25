@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F6BA75FD2D45790C002378AE /* Down in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA75FC2D45790C002378AE /* Down */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F69D95BB2D43413C00503127 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6BA75FD2D45790C002378AE /* Down in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = "Taste Test";
 			packageProductDependencies = (
+				F6BA75FC2D45790C002378AE /* Down */,
 			);
 			productName = "Taste Test";
 			productReference = F69D95AA2D43413A00503127 /* Taste Test.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = F69D95A12D43413A00503127;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F69D95AB2D43413A00503127 /* Products */;
 			projectDirPath = "";
@@ -573,6 +582,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/iwasrobbed/Down";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F6BA75FC2D45790C002378AE /* Down */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */;
+			productName = Down;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F69D95A22D43413A00503127 /* Project object */;
 }

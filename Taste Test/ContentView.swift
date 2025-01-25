@@ -2,13 +2,15 @@ import SwiftUI
 import AVFoundation
 import PhotosUI
 import Vision
+import Down
 
-// Utility function for cleaning and formatting Markdown text
 func cleanMarkdown(_ text: String) -> String {
-    return text
-        .replacingOccurrences(of: "\n-", with: "\n\n-") // Preserve list formatting
-        .replacingOccurrences(of: "##", with: "\n##")   // Ensure headers are on new lines
-        .replacingOccurrences(of: "###", with: "\n###") // Ensure subheaders are on new lines
+    var cleanedText = text
+    cleanedText = cleanedText.replacingOccurrences(of: "### ", with: "")  // Remove triple-hash headers
+    cleanedText = cleanedText.replacingOccurrences(of: "## ", with: "")   // Remove double-hash headers
+    cleanedText = cleanedText.replacingOccurrences(of: "# ", with: "")    // Remove single-hash headers
+    cleanedText = cleanedText.replacingOccurrences(of: "\n-", with: "\n-") // Ensure single line-breaks for bullet points
+    return cleanedText
 }
 
 struct ContentView: View {
@@ -24,6 +26,7 @@ struct ContentView: View {
     @State private var menuScale: CGFloat = 0.8 // Initial scale for the menu
     @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
+    @State private var showRecommendationCards: Bool = true
     
     var body: some View {
         ZStack {
@@ -83,6 +86,7 @@ struct ContentView: View {
                                         if message.isUser {
                                             Spacer()
                                             Text(message.text)
+                                                .font(.system(size: 16))
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 8)
                                                 .background(Color.blue)
@@ -90,7 +94,8 @@ struct ContentView: View {
                                                 .cornerRadius(20)
                                                 .frame(maxWidth: 250, alignment: .trailing)
                                         } else {
-                                            Text(message.text)
+                                            let cleanedText = cleanMarkdown(message.text)
+                                            MarkdownTextView(markdown: cleanedText, fontSize: 16)
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 8)
                                                 .background(Color(.systemGray5))
@@ -98,7 +103,6 @@ struct ContentView: View {
                                                 .cornerRadius(20)
                                                 .frame(maxWidth: 250, alignment: .leading)
                                                 .multilineTextAlignment(.leading)
-                                                .fixedSize(horizontal: false, vertical: true)
                                             Spacer()
                                         }
                                     }
@@ -118,45 +122,45 @@ struct ContentView: View {
                 }
                 
                 // Instruction Rectangles
-                HStack(spacing: 10) {
-                    Button(action: {
-                        isCameraActive = true
-                    }) {
-                        Text("First, take a photo of the menu ↗")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                            .scaleEffect(isCameraActive ? 0.95 : 1.0)
-                            .animation(.easeInOut(duration: 0.2), value: isCameraActive)
-                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .fullScreenCover(isPresented: $isCameraActive) {
-                        ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
-                            if let image = image {
-                                messages.append(Message(image: image))
+                if showRecommendationCards {
+                    HStack(spacing: 10) {
+                        Button(action: {
+                            isCameraActive = true
+                        }) {
+                            Text("First, take a photo of the menu ↗")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.blue)
+                                .cornerRadius(12)
+                                .scaleEffect(isCameraActive ? 0.95 : 1.0)
+                                .animation(.easeInOut(duration: 0.2), value: isCameraActive)
+                                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .fullScreenCover(isPresented: $isCameraActive) {
+                            ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
+                                handleImage(image)
                             }
                         }
+                        
+                        InstructionRectangle(
+                            text: "🥇 See the top choices",
+                            backgroundColor: Color(.systemGray5),
+                            textColor: Color.black,
+                            isBold: false
+                        )
+                        InstructionRectangle(
+                            text: "🧑‍🍳 Ask follow ups",
+                            backgroundColor: Color(.systemGray5),
+                            textColor: Color.black,
+                            isBold: false
+                        )
                     }
-                    
-                    InstructionRectangle(
-                        text: "🥇 See the top choices",
-                        backgroundColor: Color(.systemGray5),
-                        textColor: Color.black,
-                        isBold: false
-                    )
-                    InstructionRectangle(
-                        text: "🧑‍🍳 Ask follow ups",
-                        backgroundColor: Color(.systemGray5),
-                        textColor: Color.black,
-                        isBold: false
-                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
                 
                 // Input Box with Circular Button
                 HStack {
@@ -283,15 +287,20 @@ struct ContentView: View {
     func handleImage(_ image: UIImage?) {
         guard let image = image else { return }
 
+        // Hide recommendation cards after the first user action
+        if showRecommendationCards {
+            showRecommendationCards = false
+        }
+        
         // Append the image to the messages array
         messages.append(Message(image: image)) // Adds the photo to the chat UI
-
+        
         // Perform OCR on the uploaded image
         performOCR(on: image) { recognizedText in
             DispatchQueue.main.async {
                 if !recognizedText.isEmpty {
                     // Send recognized text to OpenAI API
-                    callOpenAIAPI(for: recognizedText, isUserMessage: false)
+                    callOpenAIAPI(for: recognizedText)
                 } else {
                     // If no text is found, inform the user
                     messages.append(Message(text: "This wasn't recognized as a menu, so there's not much I can recommend to you 😇", isUser: false))
@@ -332,22 +341,22 @@ struct ContentView: View {
     func sendMessage() {
         guard !currentMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        // Add the user message to the chat only here
+        // Hide recommendation cards after the first user action
+        if showRecommendationCards {
+            showRecommendationCards = false
+        }
+        
         let userMessage = Message(text: currentMessage, isUser: true)
         messages.append(userMessage)
-        
-        // Reset input field
         currentMessage = ""
         showSendButton = false
-        
-        // Send the message to OpenAI
-        callOpenAIAPI(for: userMessage.text, isUserMessage: true)
+        callOpenAIAPI(for: userMessage.text)
     }
     
     func callOpenAIAPI(for message: String, isUserMessage: Bool = true) {
         // If this is a user message, it has already been appended by `sendMessage()`. Skip adding it again here.
         if isUserMessage {
-            print("User message already added: \(message)")
+            print("NOTE: User message already added.")
         }
 
         isLoading = true
@@ -409,6 +418,10 @@ struct ContentView: View {
                 print("Invalid response from OpenAI API")
                 return
             }
+            
+            
+            // TMP - Log the raw response content to the console
+            print("OpenAI Response Content: \(content)")
 
             DispatchQueue.main.async {
                 // Append the assistant's response to the chat
@@ -504,6 +517,39 @@ struct Message: Identifiable, Equatable {
 
     static func == (lhs: Message, rhs: Message) -> Bool {
         return lhs.id == rhs.id
+    }
+}
+
+struct MarkdownTextView: View {
+    let markdown: String
+    let fontSize: CGFloat
+
+    var body: some View {
+        Group {
+            if let attributedString = convertMarkdownToAttributedString(markdown) {
+                Text(AttributedString(attributedString))
+                    .font(.system(size: fontSize))
+                    .multilineTextAlignment(.leading)
+            } else {
+                Text(markdown) // Fallback to plain text
+                    .font(.system(size: fontSize))
+                    .multilineTextAlignment(.leading)
+            }
+        }
+    }
+
+    private func convertMarkdownToAttributedString(_ markdown: String) -> NSAttributedString? {
+        // Convert markdown to attributed string using Down
+        if let downAttributedString = try? Down(markdownString: markdown).toAttributedString() {
+            let mutableAttributedString = NSMutableAttributedString(attributedString: downAttributedString)
+            mutableAttributedString.addAttribute(
+                .font,
+                value: UIFont.systemFont(ofSize: fontSize),
+                range: NSRange(location: 0, length: mutableAttributedString.length)
+            )
+            return mutableAttributedString
+        }
+        return nil
     }
 }
 
