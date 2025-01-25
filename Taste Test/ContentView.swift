@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var isPaneOpen: Bool = false // Side pane toggle
     @State private var dragOffset: CGFloat = 0.0 // Tracks drag offset for the pane
     @State private var isLoading: Bool = false // Tracks if an OpenAI request is in progress
+    @State private var isMenuVisible: Bool = false // Camera option menu visibility
+    @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
 
 
     var body: some View {
@@ -120,7 +122,7 @@ struct ContentView: View {
                     }
 
                     InstructionRectangle(
-                        text: "🥇 Get the top choices",
+                        text: "🥇 See the top choices",
                         backgroundColor: Color(.systemGray5),
                         textColor: Color.black,
                         isBold: false
@@ -135,8 +137,27 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
 
-                // Input Box
+                // Input Box with Circular Button
                 HStack {
+                    // Circular Button
+                    Button(action: {
+                        withAnimation {
+                            isMenuVisible.toggle()
+                        }
+                    }) {
+                        Circle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 35, height: 35)
+                            .overlay(
+                                Image(systemName: "plus")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 18))
+                            )
+                            .scaleEffect(isMenuVisible ? 0.95 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: isMenuVisible)
+                    }
+
+                    // Text Input Field
                     TextField("Type Message", text: $currentMessage)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -166,70 +187,72 @@ struct ContentView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
-            .background(
-                Color(.systemBackground)
-                    .overlay(isPaneOpen ? Color.black.opacity(0.3) : Color.clear)
-                    .animation(.easeInOut, value: isPaneOpen)
-                    .onTapGesture {
-                        if isPaneOpen {
-                            withAnimation {
-                                isPaneOpen = false
-                            }
-                        }
+            .background(Color(.systemBackground))
+            .onTapGesture {
+                if isMenuVisible {
+                    withAnimation {
+                        isMenuVisible = false
                     }
-            )
+                }
+            }
 
-            // Side Pane
-            HStack {
-                VStack {
-                    Spacer()
-                    // Settings Button (no badge)
+            // Pop-up Menu
+            if isMenuVisible {
+                VStack(spacing: 8) {
                     Button(action: {
-                        print("Settings tapped!")
+                        isMenuVisible = false
+                        isCameraActive = true
                     }) {
                         HStack {
-                            Image(systemName: "gear")
-                                .font(.system(size: 16))
+                            Image(systemName: "camera")
                                 .foregroundColor(.blue)
-                            Text("Settings")
-                                .font(.system(size: 16))
+                            Text("Take a Picture")
                                 .foregroundColor(.blue)
                         }
-                        .padding(.leading, 16) // Adjust to left-align
-                        .padding(.vertical, 12)
+                        .padding(8)
+                        .background(Color.white)
+                        .cornerRadius(8)
                     }
-                    .padding(.bottom, 16)
+
+                    Divider()
+
+                    Button(action: {
+                        isMenuVisible = false
+                        isPhotoPickerActive = true
+                    }) {
+                        HStack {
+                            Image(systemName: "photo")
+                                .foregroundColor(.blue)
+                            Text("Upload a Photo")
+                                .foregroundColor(.blue)
+                        }
+                        .padding(8)
+                        .background(Color.white)
+                        .cornerRadius(8)
+                    }
                 }
-                .frame(width: 240) // Adjusted width for better layout
-                .background(
-                    Color.white
-                        .cornerRadius(16, corners: [.topRight, .bottomRight])
-                        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
-                )
-                .edgesIgnoringSafeArea(.all) // Ensures pane spans full height
-                Spacer()
+                .padding()
+                .background(Color.white)
+                .cornerRadius(12)
+                .shadow(radius: 4)
+                .frame(width: 200)
+                .offset(x: -82, y: 267) // Positions menu above the button
+                .transition(.scale) // Adds a scaling animation
             }
-            .offset(x: isPaneOpen ? 0 : -240 + dragOffset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        let translation = value.translation.width
-                        dragOffset = max(-240, min(0, translation))
-                    }
-                    .onEnded { value in
-                        if dragOffset > -120 {
-                            withAnimation {
-                                isPaneOpen = true
-                            }
-                        } else {
-                            withAnimation {
-                                isPaneOpen = false
-                            }
-                        }
-                        dragOffset = 0
-                    }
-            )
-            .animation(.easeInOut, value: isPaneOpen)
+        }
+        .sheet(isPresented: $isPhotoPickerActive) {
+            ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage) { image in
+                if let image = image {
+                    messages.append(Message(image: image))
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $isCameraActive) {
+            ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage) { image in
+                if let image = image {
+                    messages.append(Message(image: image))
+                }
+            }
         }
     }
     
