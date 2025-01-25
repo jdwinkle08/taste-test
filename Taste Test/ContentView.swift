@@ -39,6 +39,31 @@ struct ContentView: View {
                 .padding(.top, 8) // Add a little spacing at the top of the chat
             }
             
+            // Instruction Rectangles
+            HStack(spacing: 10) { // Equal spacing between bubbles
+                InstructionRectangle(
+                    text: "First, take a photo of the menu ↗",
+                    backgroundColor: Color.blue,
+                    textColor: Color.white,
+                    isBold: true
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4) // Soft shadow with subtle offset
+                InstructionRectangle(
+                    text: "🥇 Get the top choices",
+                    backgroundColor: Color(.systemGray5),
+                    textColor: Color.black,
+                    isBold: false
+                )
+                InstructionRectangle(
+                    text: "🧑‍🍳 Ask follow ups",
+                    backgroundColor: Color(.systemGray5),
+                    textColor: Color.black,
+                    isBold: false
+                )
+            }
+            .frame(maxWidth: .infinity) // Ensures the HStack stretches across the available width
+            .padding(.horizontal, 16) // Adds equal padding to the left and right of the entire group
+            
             // Input Box
             HStack {
                 TextField("Type Message", text: $currentMessage)
@@ -170,6 +195,27 @@ struct ContentView: View {
                 print("Error decoding JSON: \(error.localizedDescription)")
             }
         }.resume()
+    }
+}
+
+// Custom view for instruction rectangles
+struct InstructionRectangle: View {
+    let text: String
+    let backgroundColor: Color
+    let textColor: Color
+    let isBold: Bool
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 14, weight: isBold ? .bold : .regular)) // Bold for the first rectangle
+            .multilineTextAlignment(.leading) // Left-align text
+            .lineLimit(2) // Ensures text wraps to two lines
+            .padding(.horizontal, 12) // Inner padding for text
+            .padding(.vertical, 8) // Inner padding for text
+            .background(backgroundColor)
+            .foregroundColor(textColor)
+            .cornerRadius(12)
+            .fixedSize(horizontal: false, vertical: true) // Dynamically resizes horizontally for content
     }
 }
 
