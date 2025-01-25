@@ -10,12 +10,10 @@ func cleanMarkdown(_ text: String) -> String {
     cleanedText = cleanedText.replacingOccurrences(of: "### ", with: "")
     cleanedText = cleanedText.replacingOccurrences(of: "## ", with: "")
     cleanedText = cleanedText.replacingOccurrences(of: "# ", with: "")
-    // Preserve bullet points with added space
-    cleanedText = cleanedText.replacingOccurrences(of: "\n-", with: "\n\n-")
-    // Remove excessive trailing newlines
-//    cleanedText = cleanedText.trimmingCharacters(in: .whitespacesAndNewlines)
+    cleanedText = cleanedText.replacingOccurrences(of: "\n-", with: "\n\n-") // Bullet points
     cleanedText = cleanedText.replacingOccurrences(of: "\n\n\n", with: "\n\n") // Collapse triple line breaks
     cleanedText = cleanedText.replacingOccurrences(of: "\n$", with: "", options: .regularExpression) // Remove final line break
+    print("Cleaned Text: \(cleanedText)") // Debugging output
     return cleanedText
 }
 
@@ -91,7 +89,7 @@ struct ContentView: View {
                                     HStack {
                                         if message.isUser {
                                             Spacer()
-                                            Text(message.text)
+                                            Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
                                                 .font(.system(size: 16))
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 8)
@@ -100,7 +98,8 @@ struct ContentView: View {
                                                 .cornerRadius(20)
                                                 .frame(maxWidth: 250, alignment: .trailing)
                                         } else {
-                                            MarkdownTextView(markdown: cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines), fontSize: 16)
+                                            Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
+                                                .font(.system(size: 16))
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 8)
                                                 .background(Color(.systemGray5))
@@ -296,16 +295,18 @@ struct ContentView: View {
         if showRecommendationCards {
             showRecommendationCards = false
         }
-        
-        // Append the image to the messages array
-        messages.append(Message(image: image)) // Adds the photo to the chat UI
-        
+
+        // Append the image to the chat UI
+        messages.append(Message(image: image)) // Only the image appears in chat
+
         // Perform OCR on the uploaded image
         performOCR(on: image) { recognizedText in
             DispatchQueue.main.async {
                 if !recognizedText.isEmpty {
-                    // Send recognized text to OpenAI API
-                    callOpenAIAPI(for: recognizedText)
+//                    print("OCR Text Extracted: \(recognizedText)") // Debugging Output
+
+                    // Pass the OCR text to OpenAI, without appending it to `messages`
+                    callOpenAIAPI(for: recognizedText, isUserMessage: false)
                 } else {
                     // If no text is found, inform the user
                     messages.append(Message(text: "This wasn't recognized as a menu, so there's not much I can recommend to you 😇", isUser: false))
@@ -316,6 +317,7 @@ struct ContentView: View {
     
     func performOCR(on image: UIImage, completion: @escaping (String) -> Void) {
         guard let cgImage = image.cgImage else {
+            print("OCR failed: No CGImage found in the provided UIImage.")
             completion("")
             return
         }
@@ -329,6 +331,7 @@ struct ContentView: View {
             
             let observations = request.results as? [VNRecognizedTextObservation] ?? []
             let recognizedText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+//            print("OCR Recognized Text: \(recognizedText)") // Debugging Output
             completion(recognizedText)
         }
         
@@ -359,10 +362,6 @@ struct ContentView: View {
     }
     
     func callOpenAIAPI(for message: String, isUserMessage: Bool = true) {
-        // If this is a user message, it has already been appended by `sendMessage()`. Skip adding it again here.
-        if isUserMessage {
-            print("NOTE: User message already added.")
-        }
 
         isLoading = true
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String else {
@@ -375,19 +374,33 @@ struct ContentView: View {
         var openAIMessages: [[String: String]] = [
             ["role": "system", "content": """
             Give top 3 recommendations for food and/or drink from menu items sent. 
-            Give each item name without ingredient list, 
+            Give each item name *without* list of ingredients, 
             followed by a 3-5 word description why you think I should order it. 
-            Include line breaks to separate items, but use plain text formatting (no headers or dashes or bullets) for human-readable display in an iMessage chat.
+            Ensure you always include line breaks to separate items, but use plain text formatting (no headers or dashes or bullets) for human-readable display in an iMessage chat. Here is an example of how to format output: 
+            
+            1. SPICY TONKOTSU: If you're looking for something warm
+            
+            2. MAMA'S GREEN CURRY CHICKEN: For a hearty and less spicy option
+            
+            3. SEAWEED SALAD: Great light option to share with the table
             """]
         ]
 
-        // Add conversation history to OpenAI messages
+        // Add conversation history (excluding images)
         openAIMessages += messages.filter { !$0.isImage }.map { message in
             [
                 "role": message.isUser ? "user" : "assistant",
                 "content": message.text
             ]
         }
+
+        // If this is OCR text (not a visible user message), append it to the OpenAI messages
+        if !isUserMessage {
+            openAIMessages.append(["role": "user", "content": message])
+        }
+
+        // Debugging: Log the compiled conversation
+        print("OpenAI Messages Payload: \(openAIMessages)")
 
         let payload: [String: Any] = [
             "model": "gpt-3.5-turbo",
@@ -422,10 +435,8 @@ struct ContentView: View {
                 print("Invalid response from OpenAI API")
                 return
             }
-            
-            
-            // TMP - Log the raw response content to the console
-            print("OpenAI Response Content: \(content)")
+
+            print("OpenAI Response Content: \(content)") // Debugging Output
 
             DispatchQueue.main.async {
                 // Append the assistant's response to the chat
@@ -521,41 +532,6 @@ struct Message: Identifiable, Equatable {
 
     static func == (lhs: Message, rhs: Message) -> Bool {
         return lhs.id == rhs.id
-    }
-}
-
-struct MarkdownTextView: View {
-    let markdown: String
-    let fontSize: CGFloat
-    
-    var body: some View {
-        Group {
-            if let attributedString = convertMarkdownToAttributedString(markdown) {
-                Text(AttributedString(attributedString))
-                    .font(.system(size: fontSize))
-                    .multilineTextAlignment(.leading)
-            } else {
-                Text(markdown) // Fallback to plain text
-                    .font(.system(size: fontSize))
-                    .multilineTextAlignment(.leading)
-            }
-        }
-    }
-    
-    private func convertMarkdownToAttributedString(_ markdown: String) -> NSAttributedString? {
-        if let downAttributedString = try? Down(markdownString: markdown).toAttributedString() {
-            let mutableAttributedString = NSMutableAttributedString(attributedString: downAttributedString)
-            mutableAttributedString.addAttribute(
-                .font,
-                value: UIFont.systemFont(ofSize: fontSize),
-                range: NSRange(location: 0, length: mutableAttributedString.length)
-            )
-            // Remove trailing newlines
-            let trimmedString = mutableAttributedString.string.trimmingCharacters(in: .whitespacesAndNewlines)
-            mutableAttributedString.mutableString.setString(trimmedString)
-            return mutableAttributedString
-        }
-        return nil
     }
 }
 
