@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var dragOffset: CGFloat = 0.0 // Tracks drag offset for the pane
     @State private var isLoading: Bool = false // Tracks if an OpenAI request is in progress
     @State private var isMenuVisible: Bool = false // Camera option menu visibility
+    @State private var menuScale: CGFloat = 0.8 // Initial scale for the menu
+    @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
 
 
@@ -141,7 +143,16 @@ struct ContentView: View {
                 HStack {
                     // Circular Button
                     Button(action: {
-                        isMenuVisible.toggle()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
+                            isMenuVisible.toggle()
+                            if isMenuVisible {
+                                menuScale = 1.0
+                                menuOpacity = 1.0
+                            } else {
+                                menuScale = 0.8
+                                menuOpacity = 0.0
+                            }
+                        }
                     }) {
                         Circle()
                             .fill(Color(.systemGray5))
@@ -184,6 +195,17 @@ struct ContentView: View {
                 .padding(.vertical, 8)
             }
             .blur(radius: isMenuVisible ? 8 : 0) // Blur background when menu is visible
+
+            // Tap Outside to Close Menu
+            if isMenuVisible {
+                Color.black.opacity(0.01) // Transparent tappable background
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            isMenuVisible = false
+                        }
+                    }
+            }
 
             // Pop-up Menu
             if isMenuVisible {
