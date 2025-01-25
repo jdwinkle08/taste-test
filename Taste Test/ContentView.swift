@@ -3,6 +3,14 @@ import AVFoundation
 import PhotosUI
 import Vision
 
+// Utility function for cleaning and formatting Markdown text
+func cleanMarkdown(_ text: String) -> String {
+    return text
+        .replacingOccurrences(of: "\n-", with: "\n\n-") // Preserve list formatting
+        .replacingOccurrences(of: "##", with: "\n##")   // Ensure headers are on new lines
+        .replacingOccurrences(of: "###", with: "\n###") // Ensure subheaders are on new lines
+}
+
 struct ContentView: View {
     @State private var messages: [Message] = [] // Array of messages
     @State private var currentMessage: String = "" // Current text input
@@ -16,7 +24,7 @@ struct ContentView: View {
     @State private var menuScale: CGFloat = 0.8 // Initial scale for the menu
     @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
-
+    
     var body: some View {
         ZStack {
             // Main Content
@@ -33,9 +41,9 @@ struct ContentView: View {
                             .foregroundColor(.blue)
                     }
                     .padding(.leading, 16)
-
+                    
                     Spacer()
-
+                    
                     Text("Hey, ")
                         .font(.system(size: 18))
                         .foregroundColor(.black)
@@ -47,57 +55,68 @@ struct ContentView: View {
                     Text(" 👋")
                         .font(.system(size: 18))
                         .foregroundColor(.black)
-
+                    
                     Spacer()
-
+                    
                     Spacer().frame(width: 40)
                 }
                 .padding(.top, 16)
                 .padding(.bottom, 8)
-
+                
                 // Chat Window
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(messages) { message in
-                            if message.isImage, let image = message.image {
-                                HStack {
-                                    Spacer()
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(maxWidth: 250)
-                                        .cornerRadius(20)
-                                        .padding(.horizontal, 8)
-                                }
-                            } else {
-                                HStack {
-                                    if message.isUser {
+                ScrollViewReader { scrollViewProxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(messages) { message in
+                                if message.isImage, let image = message.image {
+                                    HStack {
                                         Spacer()
-                                        Text(message.text)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 8)
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(maxWidth: 250)
                                             .cornerRadius(20)
-                                            .frame(maxWidth: 250, alignment: .trailing)
-                                    } else {
-                                        Text(message.text)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 8)
-                                            .background(Color(.systemGray5))
-                                            .foregroundColor(.black)
-                                            .cornerRadius(20)
-                                            .frame(maxWidth: 250, alignment: .leading)
-                                        Spacer()
+                                            .padding(.horizontal, 8)
                                     }
+                                } else {
+                                    HStack {
+                                        if message.isUser {
+                                            Spacer()
+                                            Text(message.text)
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 8)
+                                                .background(Color.blue)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(20)
+                                                .frame(maxWidth: 250, alignment: .trailing)
+                                        } else {
+                                            Text(message.text)
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 8)
+                                                .background(Color(.systemGray5))
+                                                .foregroundColor(.black)
+                                                .cornerRadius(20)
+                                                .frame(maxWidth: 250, alignment: .leading)
+                                                .multilineTextAlignment(.leading)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                            Spacer()
+                                        }
+                                    }
+                                    .padding(.horizontal, 8)
                                 }
-                                .padding(.horizontal, 8)
                             }
                         }
+                        .padding(.top, 8)
+                        .id("BOTTOM") // Set a scroll marker
                     }
-                    .padding(.top, 8)
+                    .onChange(of: messages) { _ in
+                        // Auto-scroll when a new message is added
+                        withAnimation {
+                            scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
+                        }
+                    }
                 }
-
+                
                 // Instruction Rectangles
                 HStack(spacing: 10) {
                     Button(action: {
@@ -122,7 +141,7 @@ struct ContentView: View {
                             }
                         }
                     }
-
+                    
                     InstructionRectangle(
                         text: "🥇 See the top choices",
                         backgroundColor: Color(.systemGray5),
@@ -138,7 +157,7 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
-
+                
                 // Input Box with Circular Button
                 HStack {
                     Button(action: {
@@ -164,7 +183,7 @@ struct ContentView: View {
                                     .font(.system(size: 18))
                             )
                     }
-
+                    
                     TextField("Type Message", text: $currentMessage)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -195,7 +214,7 @@ struct ContentView: View {
                 .padding(.vertical, 8)
             }
             .blur(radius: isMenuVisible ? 8 : 0)
-
+            
             // Tap Outside to Close Menu
             if isMenuVisible {
                 Color.black.opacity(0.01)
@@ -206,7 +225,7 @@ struct ContentView: View {
                         }
                     }
             }
-
+            
             // Pop-up Menu
             if isMenuVisible {
                 VStack(alignment: .leading, spacing: 30) {
@@ -228,7 +247,7 @@ struct ContentView: View {
                                 .font(.system(size: 24))
                         }
                     }
-
+                    
                     Button(action: {
                         withAnimation {
                             isMenuVisible = false
@@ -260,13 +279,13 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func handleImage(_ image: UIImage?) {
         guard let image = image else { return }
-
+        
         // Append the image to the messages array
         messages.append(Message(image: image)) // Adds the photo to the chat UI
-
+        
         // Perform OCR on the uploaded image
         performOCR(on: image) { recognizedText in
             DispatchQueue.main.async {
@@ -280,25 +299,25 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func performOCR(on image: UIImage, completion: @escaping (String) -> Void) {
         guard let cgImage = image.cgImage else {
             completion("")
             return
         }
-
+        
         let request = VNRecognizeTextRequest { (request, error) in
             if let error = error {
                 print("OCR Error: \(error)")
                 completion("")
                 return
             }
-
+            
             let observations = request.results as? [VNRecognizedTextObservation] ?? []
             let recognizedText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
             completion(recognizedText)
         }
-
+        
         let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         DispatchQueue.global(qos: .userInitiated).async {
             do {
@@ -309,7 +328,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func sendMessage() {
         guard !currentMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let userMessage = Message(text: currentMessage, isUser: true)
@@ -318,7 +337,7 @@ struct ContentView: View {
         showSendButton = false
         callOpenAIAPI(for: userMessage.text)
     }
-
+    
     func callOpenAIAPI(for message: String) {
         isLoading = true
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String else {
@@ -329,7 +348,7 @@ struct ContentView: View {
         let payload: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": [
-                ["role": "system", "content": "Give top 3 recommendations for food and drink. Give each item in bold, followed by a very short description why I should order it"],
+                ["role": "system", "content": "Give top 3 recommendations for food and drink. Give each item name in bold without ingredient list, followed by a 3-5 word description why you think I should order it. Respond in markdown format with clear line breaks between sections. Use explicit newline characters for clarity, and structure the text with headings and bullet points."],
                 ["role": "user", "content": message]
             ]
         ]
@@ -362,6 +381,8 @@ struct ContentView: View {
                 print("Invalid response from OpenAI API")
                 return
             }
+            
+            print("Raw OpenAI Response: \(content)")
 
             DispatchQueue.main.async {
                 messages.append(Message(text: content, isUser: false))
@@ -433,7 +454,7 @@ struct ImagePicker: UIViewControllerRepresentable {
 }
 
 // Chat Message Model
-struct Message: Identifiable {
+struct Message: Identifiable, Equatable {
     let id = UUID()
     let text: String
     let isUser: Bool
@@ -452,6 +473,10 @@ struct Message: Identifiable {
         self.isUser = true
         self.isImage = true
         self.image = image
+    }
+
+    static func == (lhs: Message, rhs: Message) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
