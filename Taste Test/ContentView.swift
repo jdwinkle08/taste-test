@@ -141,9 +141,7 @@ struct ContentView: View {
                 HStack {
                     // Circular Button
                     Button(action: {
-                        withAnimation {
-                            isMenuVisible.toggle()
-                        }
+                        isMenuVisible.toggle()
                     }) {
                         Circle()
                             .fill(Color(.systemGray5))
@@ -153,8 +151,6 @@ struct ContentView: View {
                                     .foregroundColor(.gray)
                                     .font(.system(size: 18))
                             )
-                            .scaleEffect(isMenuVisible ? 0.95 : 1.0)
-                            .animation(.easeInOut(duration: 0.2), value: isMenuVisible)
                     }
 
                     // Text Input Field
@@ -187,57 +183,45 @@ struct ContentView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
-            .background(Color(.systemBackground))
-            .onTapGesture {
-                if isMenuVisible {
-                    withAnimation {
-                        isMenuVisible = false
-                    }
-                }
-            }
+            .blur(radius: isMenuVisible ? 8 : 0) // Blur background when menu is visible
 
             // Pop-up Menu
             if isMenuVisible {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 30) {
                     Button(action: {
                         isMenuVisible = false
                         isCameraActive = true
                     }) {
-                        HStack {
-                            Image(systemName: "camera")
-                                .foregroundColor(.blue)
+                        HStack(spacing: 22) {
+                            Image("cameraAppIcon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 36, height: 36)
                             Text("Take a Picture")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.black)
+                                .font(.system(size: 24))
                         }
-                        .padding(8)
-                        .background(Color.white)
-                        .cornerRadius(8)
                     }
-
-                    Divider()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button(action: {
                         isMenuVisible = false
                         isPhotoPickerActive = true
                     }) {
-                        HStack {
-                            Image(systemName: "photo")
-                                .foregroundColor(.blue)
+                        HStack(spacing: 22) {
+                            Image("photosAppIcon") // Use the custom photos icon
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 36, height: 36)
                             Text("Upload a Photo")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.black)
+                                .font(.system(size: 24))
                         }
-                        .padding(8)
-                        .background(Color.white)
-                        .cornerRadius(8)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(12)
-                .shadow(radius: 4)
-                .frame(width: 200)
-                .offset(x: -82, y: 267) // Positions menu above the button
-                .transition(.scale) // Adds a scaling animation
+                .frame(width: 250)
+                .position(x: 150, y: UIScreen.main.bounds.height - 218) // Adjusts position above the button
             }
         }
         .sheet(isPresented: $isPhotoPickerActive) {
