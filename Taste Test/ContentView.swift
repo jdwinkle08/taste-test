@@ -6,10 +6,16 @@ import Down
 
 func cleanMarkdown(_ text: String) -> String {
     var cleanedText = text
-    cleanedText = cleanedText.replacingOccurrences(of: "### ", with: "")  // Remove triple-hash headers
-    cleanedText = cleanedText.replacingOccurrences(of: "## ", with: "")   // Remove double-hash headers
-    cleanedText = cleanedText.replacingOccurrences(of: "# ", with: "")    // Remove single-hash headers
-    cleanedText = cleanedText.replacingOccurrences(of: "\n-", with: "\n-") // Ensure single line-breaks for bullet points
+    // Remove headers
+    cleanedText = cleanedText.replacingOccurrences(of: "### ", with: "")
+    cleanedText = cleanedText.replacingOccurrences(of: "## ", with: "")
+    cleanedText = cleanedText.replacingOccurrences(of: "# ", with: "")
+    // Preserve bullet points with added space
+    cleanedText = cleanedText.replacingOccurrences(of: "\n-", with: "\n\n-")
+    // Remove excessive trailing newlines
+//    cleanedText = cleanedText.trimmingCharacters(in: .whitespacesAndNewlines)
+    cleanedText = cleanedText.replacingOccurrences(of: "\n\n\n", with: "\n\n") // Collapse triple line breaks
+    cleanedText = cleanedText.replacingOccurrences(of: "\n$", with: "", options: .regularExpression) // Remove final line break
     return cleanedText
 }
 
@@ -94,8 +100,7 @@ struct ContentView: View {
                                                 .cornerRadius(20)
                                                 .frame(maxWidth: 250, alignment: .trailing)
                                         } else {
-                                            let cleanedText = cleanMarkdown(message.text)
-                                            MarkdownTextView(markdown: cleanedText, fontSize: 16)
+                                            MarkdownTextView(markdown: cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines), fontSize: 16)
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 8)
                                                 .background(Color(.systemGray5))
@@ -369,11 +374,10 @@ struct ContentView: View {
         // Prepare the OpenAI API conversation history
         var openAIMessages: [[String: String]] = [
             ["role": "system", "content": """
-            Give top 3 recommendations for food and drink. 
-            Give each item name in bold without ingredient list, 
+            Give top 3 recommendations for food and/or drink from menu items sent. 
+            Give each item name without ingredient list, 
             followed by a 3-5 word description why you think I should order it. 
-            Respond in markdown format with clear line breaks between sections. 
-            Use explicit newline characters for clarity, and structure the text with headings and bullet points.
+            Include line breaks to separate items, but use plain text formatting (no headers or dashes or bullets) for human-readable display in an iMessage chat.
             """]
         ]
 
@@ -523,7 +527,7 @@ struct Message: Identifiable, Equatable {
 struct MarkdownTextView: View {
     let markdown: String
     let fontSize: CGFloat
-
+    
     var body: some View {
         Group {
             if let attributedString = convertMarkdownToAttributedString(markdown) {
@@ -537,9 +541,8 @@ struct MarkdownTextView: View {
             }
         }
     }
-
+    
     private func convertMarkdownToAttributedString(_ markdown: String) -> NSAttributedString? {
-        // Convert markdown to attributed string using Down
         if let downAttributedString = try? Down(markdownString: markdown).toAttributedString() {
             let mutableAttributedString = NSMutableAttributedString(attributedString: downAttributedString)
             mutableAttributedString.addAttribute(
@@ -547,6 +550,9 @@ struct MarkdownTextView: View {
                 value: UIFont.systemFont(ofSize: fontSize),
                 range: NSRange(location: 0, length: mutableAttributedString.length)
             )
+            // Remove trailing newlines
+            let trimmedString = mutableAttributedString.string.trimmingCharacters(in: .whitespacesAndNewlines)
+            mutableAttributedString.mutableString.setString(trimmedString)
             return mutableAttributedString
         }
         return nil
