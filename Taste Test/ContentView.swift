@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 import PhotosUI
+import Vision
 
 struct ContentView: View {
     @State private var messages: [Message] = [] // Array of messages
@@ -16,14 +17,12 @@ struct ContentView: View {
     @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
 
-
     var body: some View {
         ZStack {
             // Main Content
             VStack {
                 // Header
                 HStack {
-                    // Menu Button
                     Button(action: {
                         withAnimation {
                             isPaneOpen.toggle()
@@ -37,7 +36,6 @@ struct ContentView: View {
 
                     Spacer()
 
-                    // Header Text with "Jeff" bolded
                     Text("Hey, ")
                         .font(.system(size: 18))
                         .foregroundColor(.black)
@@ -52,10 +50,9 @@ struct ContentView: View {
 
                     Spacer()
 
-                    // Placeholder for symmetry
-                    Spacer().frame(width: 40) // Matches the width of the button
+                    Spacer().frame(width: 40)
                 }
-                .padding(.top, 16) // Adjust based on notch height
+                .padding(.top, 16)
                 .padding(.bottom, 8)
 
                 // Chat Window
@@ -63,9 +60,8 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(messages) { message in
                             if message.isImage, let image = message.image {
-                                // Added Spacer() to push the image to the right
                                 HStack {
-                                    Spacer() // Push the image to the right
+                                    Spacer()
                                     Image(uiImage: image)
                                         .resizable()
                                         .scaledToFit()
@@ -145,8 +141,9 @@ struct ContentView: View {
 
                 // Input Box with Circular Button
                 HStack {
-                    // Circular Button
                     Button(action: {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        // Close keyboard before showing menu
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
                             isMenuVisible.toggle()
                             if isMenuVisible {
@@ -168,7 +165,6 @@ struct ContentView: View {
                             )
                     }
 
-                    // Text Input Field
                     TextField("Type Message", text: $currentMessage)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -198,11 +194,11 @@ struct ContentView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
-            .blur(radius: isMenuVisible ? 8 : 0) // Blur background when menu is visible
+            .blur(radius: isMenuVisible ? 8 : 0)
 
             // Tap Outside to Close Menu
             if isMenuVisible {
-                Color.black.opacity(0.01) // Transparent tappable background
+                Color.black.opacity(0.01)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation {
@@ -255,29 +251,73 @@ struct ContentView: View {
                 .scaleEffect(menuScale)
                 .opacity(menuOpacity)
                 .frame(width: 250)
-                .position(x: 150, y: UIScreen.main.bounds.height - 218) // Adjust position
+                .position(x: 138, y: UIScreen.main.bounds.height - 218) // Adjust position
             }
         }
         .sheet(isPresented: $isPhotoPickerActive) {
             ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage, sourceType: .photoLibrary) { image in
-                if let image = image {
-                    messages.append(Message(image: image))
+                handleImage(image)
+            }
+        }
+    }
+
+    func handleImage(_ image: UIImage?) {
+        guard let image = image else { return }
+
+        // Append the image to the messages array
+        messages.append(Message(image: image)) // Adds the photo to the chat UI
+
+        // Perform OCR on the uploaded image
+        performOCR(on: image) { recognizedText in
+            DispatchQueue.main.async {
+                if !recognizedText.isEmpty {
+                    // Send recognized text to OpenAI API
+                    callOpenAIAPI(for: recognizedText)
+                } else {
+                    // If no text is found, inform the user
+                    messages.append(Message(text: "This wasn't recognized as a menu, so there's not much I can recommend to you 😇", isUser: false))
                 }
             }
         }
     }
-    
+
+    func performOCR(on image: UIImage, completion: @escaping (String) -> Void) {
+        guard let cgImage = image.cgImage else {
+            completion("")
+            return
+        }
+
+        let request = VNRecognizeTextRequest { (request, error) in
+            if let error = error {
+                print("OCR Error: \(error)")
+                completion("")
+                return
+            }
+
+            let observations = request.results as? [VNRecognizedTextObservation] ?? []
+            let recognizedText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+            completion(recognizedText)
+        }
+
+        let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try requestHandler.perform([request])
+            } catch {
+                print("Error performing OCR: \(error)")
+                completion("")
+            }
+        }
+    }
+
     func sendMessage() {
         guard !currentMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let userMessage = Message(text: currentMessage, isUser: true)
         messages.append(userMessage)
         currentMessage = ""
         showSendButton = false
-        
-        // Call OpenAI API
         callOpenAIAPI(for: userMessage.text)
     }
-
 
     func callOpenAIAPI(for message: String) {
         isLoading = true
@@ -289,7 +329,7 @@ struct ContentView: View {
         let payload: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": [
-                ["role": "system", "content": "You are a helpful assistant."],
+                ["role": "system", "content": "Give top 3 recommendations for food and drink. Give each item in bold, followed by a very short description why I should order it"],
                 ["role": "user", "content": message]
             ]
         ]
