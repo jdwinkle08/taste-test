@@ -378,6 +378,8 @@ struct ContentView: View {
             followed by a 3-5 word description why you think I should order it. 
             Ensure you always include line breaks to separate items, but use plain text formatting (no headers or dashes or bullets) for human-readable display in an iMessage chat. Here is an example of how to format output: 
             
+            I'd recommend...
+            
             1. SPICY TONKOTSU: If you're looking for something warm
             
             2. MAMA'S GREEN CURRY CHICKEN: For a hearty and less spicy option
