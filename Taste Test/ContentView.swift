@@ -282,16 +282,16 @@ struct ContentView: View {
     
     func handleImage(_ image: UIImage?) {
         guard let image = image else { return }
-        
+
         // Append the image to the messages array
         messages.append(Message(image: image)) // Adds the photo to the chat UI
-        
+
         // Perform OCR on the uploaded image
         performOCR(on: image) { recognizedText in
             DispatchQueue.main.async {
                 if !recognizedText.isEmpty {
                     // Send recognized text to OpenAI API
-                    callOpenAIAPI(for: recognizedText)
+                    callOpenAIAPI(for: recognizedText, isUserMessage: false)
                 } else {
                     // If no text is found, inform the user
                     messages.append(Message(text: "This wasn't recognized as a menu, so there's not much I can recommend to you 😇", isUser: false))
@@ -331,26 +331,54 @@ struct ContentView: View {
     
     func sendMessage() {
         guard !currentMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        // Add the user message to the chat only here
         let userMessage = Message(text: currentMessage, isUser: true)
         messages.append(userMessage)
+        
+        // Reset input field
         currentMessage = ""
         showSendButton = false
-        callOpenAIAPI(for: userMessage.text)
+        
+        // Send the message to OpenAI
+        callOpenAIAPI(for: userMessage.text, isUserMessage: true)
     }
     
-    func callOpenAIAPI(for message: String) {
+    func callOpenAIAPI(for message: String, isUserMessage: Bool = true) {
+        // If this is a user message, it has already been appended by `sendMessage()`. Skip adding it again here.
+        if isUserMessage {
+            print("User message already added: \(message)")
+        }
+
         isLoading = true
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String else {
             fatalError("API Key not found in Secrets.xcconfig")
         }
+
         let endpoint = "https://api.openai.com/v1/chat/completions"
+
+        // Prepare the OpenAI API conversation history
+        var openAIMessages: [[String: String]] = [
+            ["role": "system", "content": """
+            Give top 3 recommendations for food and drink. 
+            Give each item name in bold without ingredient list, 
+            followed by a 3-5 word description why you think I should order it. 
+            Respond in markdown format with clear line breaks between sections. 
+            Use explicit newline characters for clarity, and structure the text with headings and bullet points.
+            """]
+        ]
+
+        // Add conversation history to OpenAI messages
+        openAIMessages += messages.filter { !$0.isImage }.map { message in
+            [
+                "role": message.isUser ? "user" : "assistant",
+                "content": message.text
+            ]
+        }
 
         let payload: [String: Any] = [
             "model": "gpt-3.5-turbo",
-            "messages": [
-                ["role": "system", "content": "Give top 3 recommendations for food and drink. Give each item name in bold without ingredient list, followed by a 3-5 word description why you think I should order it. Respond in markdown format with clear line breaks between sections. Use explicit newline characters for clarity, and structure the text with headings and bullet points."],
-                ["role": "user", "content": message]
-            ]
+            "messages": openAIMessages
         ]
 
         guard let url = URL(string: endpoint),
@@ -381,10 +409,9 @@ struct ContentView: View {
                 print("Invalid response from OpenAI API")
                 return
             }
-            
-            print("Raw OpenAI Response: \(content)")
 
             DispatchQueue.main.async {
+                // Append the assistant's response to the chat
                 messages.append(Message(text: content, isUser: false))
             }
         }.resume()
