@@ -8,10 +8,10 @@
 import SwiftUI
 
 @main
-struct Taste_TestApp: App {
+struct YourAppNameApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AccountCreationView() // Replace ContentView with AccountCreationView
         }
     }
 }

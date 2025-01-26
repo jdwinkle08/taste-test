@@ -51,15 +51,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    Text("Hey, ")
-                        .font(.system(size: 18))
-                        .foregroundColor(.black)
-                    +
-                    Text("Jeff")
-                        .font(.system(size: 18))
-                        .foregroundColor(.black)
-                    +
-                    Text(" 👋")
+                    Text("What are we having? ☺️")
                         .font(.system(size: 18))
                         .foregroundColor(.black)
                     
