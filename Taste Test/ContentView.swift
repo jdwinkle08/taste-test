@@ -236,34 +236,53 @@ struct ContentView: View {
                         }
                     }
             }
-            
+
             HStack {
                 VStack {
                     Spacer()
-                    // Settings Button (no badge)
+
+                    // Settings Button
                     Button(action: {
                         print("Settings tapped!")
                     }) {
                         HStack {
                             Image(systemName: "gear")
                                 .font(.system(size: 16))
-                                .foregroundColor(.blue)
+                                .foregroundColor(.gray)
                             Text("Settings")
-                                .font(.system(size: 16))
-                                .foregroundColor(.blue)
+                                .font(.headline)
+                                .foregroundColor(.gray)
                         }
-                        .padding(.leading, 16) // Adjust to left-align
-                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.bottom, 16)
+
+                    // Sign Out Button
+                    Button(action: {
+                        print("Sign out button tapped!")
+                    }) {
+                        Text("Sign out")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                    }
+                    .padding(.bottom, 32) // Add spacing at the bottom
                 }
-                .frame(width: 320) // Adjusted width for better layout
+                .frame(width: 320)
                 .background(
                     Color.white
                         .cornerRadius(16, corners: [.topRight, .bottomRight])
                         .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
                 )
-                .edgesIgnoringSafeArea(.all) // Ensures pane spans full height
+                .edgesIgnoringSafeArea(.all)
                 Spacer()
             }
             .offset(x: isPaneOpen ? 0 : -320 + dragOffset)
