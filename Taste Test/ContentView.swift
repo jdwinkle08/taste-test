@@ -226,6 +226,58 @@ struct ContentView: View {
                     }
             }
             
+            // Side Pane
+            HStack {
+                VStack {
+                    Spacer()
+                    // Settings Button (no badge)
+                    Button(action: {
+                        print("Settings tapped!")
+                    }) {
+                        HStack {
+                            Image(systemName: "gear")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                            Text("Settings")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.leading, 16) // Adjust to left-align
+                        .padding(.vertical, 12)
+                    }
+                    .padding(.bottom, 16)
+                }
+                .frame(width: 320) // Adjusted width for better layout
+                .background(
+                    Color.white
+                        .cornerRadius(16, corners: [.topRight, .bottomRight])
+                        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
+                )
+                .edgesIgnoringSafeArea(.all) // Ensures pane spans full height
+                Spacer()
+            }
+            .offset(x: isPaneOpen ? 0 : -320 + dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let translation = value.translation.width
+                        dragOffset = max(-240, min(0, translation))
+                    }
+                    .onEnded { value in
+                        if dragOffset > -120 {
+                            withAnimation {
+                                isPaneOpen = true
+                            }
+                        } else {
+                            withAnimation {
+                                isPaneOpen = false
+                            }
+                        }
+                        dragOffset = 0
+                    }
+            )
+            .animation(.easeInOut, value: isPaneOpen)
+            
             // Pop-up Menu
             if isMenuVisible {
                 VStack(alignment: .leading, spacing: 30) {
@@ -279,6 +331,8 @@ struct ContentView: View {
             }
         }
     }
+    
+    
     
     func handleImage(_ image: UIImage?) {
         guard let image = image else { return }
