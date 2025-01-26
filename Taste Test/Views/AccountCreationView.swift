@@ -45,7 +45,17 @@ struct AccountCreationView: View {
                         .padding(.horizontal, 24)
                     }
 
-                    Spacer()
+//                    Spacer()
+
+                    // Error Message
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.body) // Adjust the font style if needed
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24) // Match padding of input fields
+                            /*.padding(.bottom, 10)*/ // Add spacing above the button
+                    }
 
                     // Sign Up Button
                     Button(action: createAccount) {
@@ -67,11 +77,6 @@ struct AccountCreationView: View {
                     .padding(.bottom, 80)
                     .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
 
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .padding()
-                    }
                 }
 
                 // Redirect to ContentView upon successful signup
@@ -81,6 +86,7 @@ struct AccountCreationView: View {
             }
         }
     }
+
 
     func createAccount() {
             guard !email.isEmpty, !password.isEmpty, !firstName.isEmpty, !lastName.isEmpty else {
@@ -96,7 +102,7 @@ struct AccountCreationView: View {
                     let client = SupabaseManager.shared.client
 
                     // Sign up the user
-                    let signUpResponse = try await client.auth.signUp(
+                    _ = try await client.auth.signUp(
                         email: email,
                         password: password,
                         data: [
@@ -125,7 +131,7 @@ struct AccountCreationView: View {
                     isLoading = false
                 } catch {
                     isLoading = false
-                    errorMessage = "Failed to create account: \(error.localizedDescription)"
+                    errorMessage = "\(error.localizedDescription)"
                     print("Signup Error: \(error)")
                 }
             }
