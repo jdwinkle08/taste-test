@@ -51,7 +51,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    Text("What are we having? ☺️")
+                    Text("What are we having today? ☺️")
                         .font(.system(size: 18))
                         .foregroundColor(.black)
                     
@@ -227,6 +227,16 @@ struct ContentView: View {
             }
             
             // Side Pane
+            if isPaneOpen {
+                Color.black.opacity(0.01)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            isPaneOpen = false
+                        }
+                    }
+            }
+            
             HStack {
                 VStack {
                     Spacer()
@@ -261,7 +271,7 @@ struct ContentView: View {
                 DragGesture()
                     .onChanged { value in
                         let translation = value.translation.width
-                        dragOffset = max(-240, min(0, translation))
+                        dragOffset = max(-320, min(0, translation))
                     }
                     .onEnded { value in
                         if dragOffset > -120 {
