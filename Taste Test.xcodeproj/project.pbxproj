@@ -7,15 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BBBCA01DF9DD5F93C44F4886 /* Pods_Taste_Test_Taste_TestUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9DAC5794EECF3D302D7EA67 /* Pods_Taste_Test_Taste_TestUITests.framework */; };
-		C7BCB494935A5D599680CA14 /* Pods_Taste_TestTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AB7A6D7913F1F378FB695A5 /* Pods_Taste_TestTests.framework */; };
-		D1A86570BCBF24C40684C0D4 /* Pods_Taste_Test.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5401DD7F9E1327BA4C4C3142 /* Pods_Taste_Test.framework */; };
+		F63FC7352D46B72700EA9EE4 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC7342D46B72700EA9EE4 /* Auth */; };
+		F63FC7372D46B72700EA9EE4 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC7362D46B72700EA9EE4 /* Functions */; };
+		F63FC7392D46B72700EA9EE4 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC7382D46B72700EA9EE4 /* PostgREST */; };
+		F63FC73B2D46B72700EA9EE4 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC73A2D46B72700EA9EE4 /* Realtime */; };
+		F63FC73D2D46B72700EA9EE4 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC73C2D46B72700EA9EE4 /* Storage */; };
+		F63FC73F2D46BAC600EA9EE4 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = F63FC73E2D46BAC600EA9EE4 /* Supabase */; };
 		F6BA75FD2D45790C002378AE /* Down in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA75FC2D45790C002378AE /* Down */; };
-		F6BA76012D46A35D002378AE /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA76002D46A35D002378AE /* Auth */; };
-		F6BA76032D46A35D002378AE /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA76022D46A35D002378AE /* Functions */; };
-		F6BA76052D46A35D002378AE /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA76042D46A35D002378AE /* PostgREST */; };
-		F6BA76072D46A35D002378AE /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA76062D46A35D002378AE /* Realtime */; };
-		F6BA76092D46A35D002378AE /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = F6BA76082D46A35D002378AE /* Storage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,16 +33,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		F63FC6FD2D46B37D00EA9EE4 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		044B8D788A97DF71F99EDAFF /* Pods-Taste Test-Taste TestUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste Test-Taste TestUITests.debug.xcconfig"; path = "Target Support Files/Pods-Taste Test-Taste TestUITests/Pods-Taste Test-Taste TestUITests.debug.xcconfig"; sourceTree = "<group>"; };
-		0A029AB67C4EEC263A8C7F6B /* Pods-Taste Test.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste Test.debug.xcconfig"; path = "Target Support Files/Pods-Taste Test/Pods-Taste Test.debug.xcconfig"; sourceTree = "<group>"; };
-		5401DD7F9E1327BA4C4C3142 /* Pods_Taste_Test.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Taste_Test.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6246B14B17FD664BA8E29B75 /* Pods-Taste Test-Taste TestUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste Test-Taste TestUITests.release.xcconfig"; path = "Target Support Files/Pods-Taste Test-Taste TestUITests/Pods-Taste Test-Taste TestUITests.release.xcconfig"; sourceTree = "<group>"; };
-		7AB7A6D7913F1F378FB695A5 /* Pods_Taste_TestTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Taste_TestTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		8B442CD6141039DDF50A9D2B /* Pods-Taste Test.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste Test.release.xcconfig"; path = "Target Support Files/Pods-Taste Test/Pods-Taste Test.release.xcconfig"; sourceTree = "<group>"; };
-		BFAA9A9F487559D3BE9CECE3 /* Pods-Taste TestTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste TestTests.release.xcconfig"; path = "Target Support Files/Pods-Taste TestTests/Pods-Taste TestTests.release.xcconfig"; sourceTree = "<group>"; };
-		D9DAC5794EECF3D302D7EA67 /* Pods_Taste_Test_Taste_TestUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Taste_Test_Taste_TestUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		E654C586773F827B05FB91F5 /* Pods-Taste TestTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Taste TestTests.debug.xcconfig"; path = "Target Support Files/Pods-Taste TestTests/Pods-Taste TestTests.debug.xcconfig"; sourceTree = "<group>"; };
 		F69D95AA2D43413A00503127 /* Taste Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Taste Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F69D95BA2D43413C00503127 /* Taste TestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Taste TestTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F69D95C42D43413C00503127 /* Taste TestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Taste TestUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,15 +73,11 @@
 		};
 		F69D95BD2D43413C00503127 /* Taste TestTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Taste TestTests";
 			sourceTree = "<group>";
 		};
 		F69D95C72D43413C00503127 /* Taste TestUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Taste TestUITests";
 			sourceTree = "<group>";
 		};
@@ -90,13 +88,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6BA76092D46A35D002378AE /* Storage in Frameworks */,
-				F6BA76052D46A35D002378AE /* PostgREST in Frameworks */,
-				F6BA76032D46A35D002378AE /* Functions in Frameworks */,
-				F6BA76012D46A35D002378AE /* Auth in Frameworks */,
-				F6BA76072D46A35D002378AE /* Realtime in Frameworks */,
+				F63FC73F2D46BAC600EA9EE4 /* Supabase in Frameworks */,
+				F63FC73D2D46B72700EA9EE4 /* Storage in Frameworks */,
+				F63FC7392D46B72700EA9EE4 /* PostgREST in Frameworks */,
+				F63FC7372D46B72700EA9EE4 /* Functions in Frameworks */,
+				F63FC7352D46B72700EA9EE4 /* Auth in Frameworks */,
+				F63FC73B2D46B72700EA9EE4 /* Realtime in Frameworks */,
 				F6BA75FD2D45790C002378AE /* Down in Frameworks */,
-				D1A86570BCBF24C40684C0D4 /* Pods_Taste_Test.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,7 +102,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7BCB494935A5D599680CA14 /* Pods_Taste_TestTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,34 +109,24 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BBBCA01DF9DD5F93C44F4886 /* Pods_Taste_Test_Taste_TestUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		04481712A83C06F327834877 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				5401DD7F9E1327BA4C4C3142 /* Pods_Taste_Test.framework */,
-				D9DAC5794EECF3D302D7EA67 /* Pods_Taste_Test_Taste_TestUITests.framework */,
-				7AB7A6D7913F1F378FB695A5 /* Pods_Taste_TestTests.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		697288FA6281748719402D5F /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				0A029AB67C4EEC263A8C7F6B /* Pods-Taste Test.debug.xcconfig */,
-				8B442CD6141039DDF50A9D2B /* Pods-Taste Test.release.xcconfig */,
-				044B8D788A97DF71F99EDAFF /* Pods-Taste Test-Taste TestUITests.debug.xcconfig */,
-				6246B14B17FD664BA8E29B75 /* Pods-Taste Test-Taste TestUITests.release.xcconfig */,
-				E654C586773F827B05FB91F5 /* Pods-Taste TestTests.debug.xcconfig */,
-				BFAA9A9F487559D3BE9CECE3 /* Pods-Taste TestTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		F63FC7302D46B51900EA9EE4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		F69D95A12D43413A00503127 = {
@@ -150,7 +137,7 @@
 				F69D95C72D43413C00503127 /* Taste TestUITests */,
 				F69D95AB2D43413A00503127 /* Products */,
 				697288FA6281748719402D5F /* Pods */,
-				04481712A83C06F327834877 /* Frameworks */,
+				F63FC7302D46B51900EA9EE4 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -171,10 +158,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F69D95CE2D43413C00503127 /* Build configuration list for PBXNativeTarget "Taste Test" */;
 			buildPhases = (
-				F143E54D59009F4570789852 /* [CP] Check Pods Manifest.lock */,
 				F69D95A62D43413A00503127 /* Sources */,
 				F69D95A72D43413A00503127 /* Frameworks */,
 				F69D95A82D43413A00503127 /* Resources */,
+				F63FC6FD2D46B37D00EA9EE4 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -186,11 +173,12 @@
 			name = "Taste Test";
 			packageProductDependencies = (
 				F6BA75FC2D45790C002378AE /* Down */,
-				F6BA76002D46A35D002378AE /* Auth */,
-				F6BA76022D46A35D002378AE /* Functions */,
-				F6BA76042D46A35D002378AE /* PostgREST */,
-				F6BA76062D46A35D002378AE /* Realtime */,
-				F6BA76082D46A35D002378AE /* Storage */,
+				F63FC7342D46B72700EA9EE4 /* Auth */,
+				F63FC7362D46B72700EA9EE4 /* Functions */,
+				F63FC7382D46B72700EA9EE4 /* PostgREST */,
+				F63FC73A2D46B72700EA9EE4 /* Realtime */,
+				F63FC73C2D46B72700EA9EE4 /* Storage */,
+				F63FC73E2D46BAC600EA9EE4 /* Supabase */,
 			);
 			productName = "Taste Test";
 			productReference = F69D95AA2D43413A00503127 /* Taste Test.app */;
@@ -200,7 +188,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F69D95D12D43413C00503127 /* Build configuration list for PBXNativeTarget "Taste TestTests" */;
 			buildPhases = (
-				6B6C47B2AEADD68C4BBC086D /* [CP] Check Pods Manifest.lock */,
 				F69D95B62D43413C00503127 /* Sources */,
 				F69D95B72D43413C00503127 /* Frameworks */,
 				F69D95B82D43413C00503127 /* Resources */,
@@ -222,7 +209,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F69D95D42D43413C00503127 /* Build configuration list for PBXNativeTarget "Taste TestUITests" */;
 			buildPhases = (
-				49C53A8931F374B024818D79 /* [CP] Check Pods Manifest.lock */,
 				F69D95C02D43413C00503127 /* Sources */,
 				F69D95C12D43413C00503127 /* Frameworks */,
 				F69D95C22D43413C00503127 /* Resources */,
@@ -274,7 +260,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */,
-				F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F69D95AB2D43413A00503127 /* Products */;
@@ -311,75 +297,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		49C53A8931F374B024818D79 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Taste Test-Taste TestUITests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		6B6C47B2AEADD68C4BBC086D /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Taste TestTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F143E54D59009F4570789852 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Taste Test-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F69D95A62D43413A00503127 /* Sources */ = {
@@ -479,6 +396,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_URL = "https://ariqlzpkggnsefyesyso.supabase.co";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -537,6 +455,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_URL = "https://ariqlzpkggnsefyesyso.supabase.co";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -544,7 +463,6 @@
 		};
 		F69D95CF2D43413C00503127 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0A029AB67C4EEC263A8C7F6B /* Pods-Taste Test.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -566,6 +484,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.1;
+				OTHER_SWIFT_FLAGS = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSECRETS";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jeffwinkle.Taste-Test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -576,7 +496,6 @@
 		};
 		F69D95D02D43413C00503127 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8B442CD6141039DDF50A9D2B /* Pods-Taste Test.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -598,6 +517,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.1;
+				OTHER_SWIFT_FLAGS = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSECRETS";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jeffwinkle.Taste-Test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -608,7 +529,6 @@
 		};
 		F69D95D22D43413C00503127 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E654C586773F827B05FB91F5 /* Pods-Taste TestTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -627,7 +547,6 @@
 		};
 		F69D95D32D43413C00503127 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BFAA9A9F487559D3BE9CECE3 /* Pods-Taste TestTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -646,7 +565,6 @@
 		};
 		F69D95D52D43413C00503127 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 044B8D788A97DF71F99EDAFF /* Pods-Taste Test-Taste TestUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -663,7 +581,6 @@
 		};
 		F69D95D62D43413C00503127 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6246B14B17FD664BA8E29B75 /* Pods-Taste Test-Taste TestUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -720,6 +637,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase-community/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 		F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/iwasrobbed/Down";
@@ -728,46 +653,43 @@
 				kind = branch;
 			};
 		};
-		F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase-community/supabase-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F63FC7342D46B72700EA9EE4 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		F63FC7362D46B72700EA9EE4 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		F63FC7382D46B72700EA9EE4 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		F63FC73A2D46B72700EA9EE4 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		F63FC73C2D46B72700EA9EE4 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		F63FC73E2D46BAC600EA9EE4 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F63FC7332D46B72700EA9EE4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
 		F6BA75FC2D45790C002378AE /* Down */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F6BA75FB2D4578E7002378AE /* XCRemoteSwiftPackageReference "Down" */;
 			productName = Down;
-		};
-		F6BA76002D46A35D002378AE /* Auth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Auth;
-		};
-		F6BA76022D46A35D002378AE /* Functions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Functions;
-		};
-		F6BA76042D46A35D002378AE /* PostgREST */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = PostgREST;
-		};
-		F6BA76062D46A35D002378AE /* Realtime */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Realtime;
-		};
-		F6BA76082D46A35D002378AE /* Storage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6BA75FF2D46A35D002378AE /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Storage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
