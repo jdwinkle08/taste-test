@@ -75,7 +75,7 @@ struct AccountCreationView: View {
                 }
 
                 // Redirect to ContentView upon successful signup
-                NavigationLink(destination: ContentView(), isActive: $isSignedUp) {
+                NavigationLink(destination: ContentView().navigationBarBackButtonHidden(true), isActive: $isSignedUp) {
                     EmptyView()
                 }
             }
