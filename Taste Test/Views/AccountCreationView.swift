@@ -64,7 +64,7 @@ struct AccountCreationView: View {
                         }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 80)
                     .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
 
                     if let errorMessage = errorMessage {
