@@ -1,10 +1,3 @@
-//
-//  AuthViewModel.swift
-//  Taste Test
-//
-//  Created by Jeff Winkle on 1/26/25.
-//
-
 import SwiftUI
 import Supabase
 
@@ -15,20 +8,31 @@ final class AuthViewModel: ObservableObject {
             print("AuthViewModel: isSignedIn updated to \(isSignedIn)")
         }
     }
+    @Published var firstName: String = ""
+    @Published var lastName: String = ""
+    @Published var email: String = ""
+
     private let supabaseManager = SupabaseManager.shared
 
+    struct User: Decodable {
+        let first_name: String
+        let last_name: String
+        let email: String
+    }
+
     init() {
-        // Attempt to restore the session on initialization
         Task {
             await restoreSession()
         }
     }
 
+    // MARK: - Sign Out
     func signOut() {
         Task {
             do {
                 try await supabaseManager.client.auth.signOut()
                 isSignedIn = false
+                clearUserData()
                 clearSession()
             } catch {
                 print("Error during sign out: \(error)")
@@ -36,25 +40,48 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-
+    // MARK: - Sign In
     func signIn(email: String, password: String) async -> Bool {
         do {
-            let session = try await SupabaseManager.shared.client.auth.signIn(
+            let session = try await supabaseManager.client.auth.signIn(
                 email: email,
                 password: password
             )
-            SupabaseManager.shared.storeSessionInUserDefaults(session)
-            await MainActor.run {
-                isSignedIn = true
+
+            supabaseManager.storeSessionInUserDefaults(session)
+
+            let userIdString = session.user.id.uuidString
+
+            let data = try await supabaseManager.client
+                .from("users")
+                .select("first_name, last_name, email")
+                .eq("id", value: userIdString)
+                .single()
+                .execute()
+            
+            if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+               let user = try? JSONDecoder().decode(User.self, from: jsonData) {
+                self.firstName = user.first_name
+                self.lastName = user.last_name
+                self.email = user.email
+                self.isSignedIn = true
+                return true
             }
-            return true
+            
+            return false
+            
         } catch {
             print("AuthViewModel: Sign-in failed - \(error)")
             return false
         }
     }
-    
-    
+
+    // MARK: - Helpers
+    private func clearUserData() {
+        firstName = ""
+        lastName = ""
+        email = ""
+    }
 
     private func saveSession(_ session: Session) {
         do {
@@ -69,6 +96,7 @@ final class AuthViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "supabaseSession")
     }
 
+    // MARK: - Restore Session
     private func restoreSession() async {
         guard
             let sessionData = UserDefaults.standard.data(forKey: "supabaseSession"),
@@ -84,6 +112,23 @@ final class AuthViewModel: ObservableObject {
                 refreshToken: session.refreshToken
             )
             isSignedIn = true
+
+            let userIdString = session.user.id.uuidString
+
+            let data = try await supabaseManager.client
+                .from("users")
+                .select("first_name, last_name, email")
+                .eq("id", value: userIdString)
+                .single()
+                .execute()
+            
+            if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+               let user = try? JSONDecoder().decode(User.self, from: jsonData) {
+                self.firstName = user.first_name
+                self.lastName = user.last_name
+                self.email = user.email
+            }
+
         } catch {
             print("Failed to restore session: \(error)")
             isSignedIn = false

@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var showRecommendationCards: Bool = true
     @State private var isSignedOut = false
     @State private var showSignUp = false
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
         if isSignedOut {
@@ -72,7 +73,7 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Text("What are we having today? ☺️")
+                        Text("Hey, \(authViewModel.firstName) 👋")
                             .font(.system(size: 18))
                             .foregroundColor(.black)
                         

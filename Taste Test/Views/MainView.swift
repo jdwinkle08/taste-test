@@ -12,6 +12,7 @@ struct MainView: View {
         Group {
             if authViewModel.isSignedIn {
                 ContentView()
+                    .environmentObject(authViewModel)
             } else {
                 if showSignUp {
                     AccountCreationView(
