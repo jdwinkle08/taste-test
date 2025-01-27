@@ -32,10 +32,18 @@ struct ContentView: View {
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
     @State private var showRecommendationCards: Bool = true
     @State private var isSignedOut = false
+    @State private var showSignUp = false
     
     var body: some View {
         if isSignedOut {
-            AccountCreationView() // Navigate back to the sign-in page
+            if showSignUp {
+                AccountCreationView(
+                    showSignIn: .constant(true), // or .constant(false), depending on your flow
+                    showSignUp: $showSignUp
+                )
+            } else {
+                SignInView(showSignUp: $showSignUp)
+            }
         } else {
             ZStack {
                 // Main Content

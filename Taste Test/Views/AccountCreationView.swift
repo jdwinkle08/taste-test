@@ -2,6 +2,9 @@ import SwiftUI
 import Supabase
 
 struct AccountCreationView: View {
+    @Binding var showSignIn: Bool
+    @Binding var showSignUp: Bool
+    
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var email = ""
@@ -9,95 +12,78 @@ struct AccountCreationView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isSignedUp = false
-    @State private var navigateToSignIn = false 
 
     var body: some View {
-        NavigationView {
-            if isSignedUp {
-                ContentView()
-                    .navigationBarBackButtonHidden(true)
-            } else if navigateToSignIn {
-                SignInView()
-            } else {
-                ZStack {
-                    Color.white.edgesIgnoringSafeArea(.all)
-
-                    VStack(spacing: 24) {
-                        Spacer().frame(height: 30)
-
-                        // Logo and Welcome Text
-                        VStack(spacing: 16) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 100, height: 100)
-                                    .foregroundColor(.blue)
-
-                                Text("Welcome 👋")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.black)
-                            }
-                            .padding(.bottom, 20)
-
-                            // Input Fields
-                            VStack(spacing: 10) {
-                                HStack(spacing: 10) {
-                                    CustomTextField(placeholder: "First Name", text: $firstName)
-                                    CustomTextField(placeholder: "Last Name", text: $lastName)
-                                }
-                                CustomTextField(placeholder: "Email", text: $email)
-                                CustomSecureField(placeholder: "Password", text: $password)
-                            }
-                            .padding(.horizontal, 24)
-                        }
-
-                        Spacer()
-
-                        // Error Message
-                        if let errorMessage = errorMessage {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .font(.body)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                        }
-
-                        // Sign Up Button
-                        Button(action: createAccount) {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text("Sign Up")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .cornerRadius(10)
-                            }
-                        }
+        if isSignedUp {
+            ContentView()
+        } else {
+            VStack(spacing: 24) {
+                // Logo and Welcome Text
+                VStack(spacing: 16) {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(.blue)
+                    
+                    Text("Welcome 👋")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                }
+                .padding(.top, 40) // Consistent spacing at the top
+                
+                // Input Fields
+                VStack(spacing: 10) {
+                    HStack(spacing: 10) {
+                        CustomTextField(placeholder: "First Name", text: $firstName)
+                        CustomTextField(placeholder: "Last Name", text: $lastName)
+                    }
+                    CustomTextField(placeholder: "Email", text: $email)
+                    CustomSecureField(placeholder: "Password", text: $password)
+                }
+                .padding(.horizontal, 24)
+                
+                // Error Message
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
-//                        .padding(.bottom, 80)
-                        .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
-                        
-                        // Sign In Button
-                        Button(action: {
-                            navigateToSignIn = true
-                        }) {
-                            Text("Already have an account? Sign In")
-                                .font(.body)
-                                .foregroundColor(.blue)
-                        }
-                        .padding(.bottom, 12)
+                }
+                
+                // Sign Up Button
+                Button(action: createAccount) {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Sign Up")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
                     }
                 }
-                .onAppear {
-                    checkSession()
+                .padding(.horizontal, 24)
+                .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
+                
+                // Navigation to Sign In
+                Button(action: {
+                    showSignIn = true // Notify MainView to switch to SignInView
+                    showSignUp = false
+                }) {
+                    Text("Already have an account? Sign In")
+                        .font(.body)
+                        .foregroundColor(.blue)
                 }
+                .padding(.bottom, 12)
             }
+            .padding()
+            .background(Color.white.edgesIgnoringSafeArea(.all))
         }
     }
 
@@ -106,15 +92,14 @@ struct AccountCreationView: View {
             errorMessage = "All fields are required."
             return
         }
-
         isLoading = true
         errorMessage = nil
-
+        
         Task {
             do {
                 let client = SupabaseManager.shared.client
 
-                // Sign up the user
+                // 1) Sign up the user
                 _ = try await client.auth.signUp(
                     email: email,
                     password: password,
@@ -124,28 +109,31 @@ struct AccountCreationView: View {
                     ]
                 )
 
-                // Explicitly sign in to get a valid session
-                let signInResponse = try await client.auth.signIn(
-                    email: email,
-                    password: password
-                )
-
+                // 2) Sign in for a valid session
+                let signInResponse = try await client.auth.signIn(email: email, password: password)
                 let userId = signInResponse.user.id.uuidString
 
-                // Insert user data into the "users" table
-                _ = try await client.from("users").insert([
-                    "id": AnyJSON(userId),
-                    "first_name": AnyJSON(firstName),
-                    "last_name": AnyJSON(lastName),
-                    "email": AnyJSON(email)
-                ]).execute()
+                // 3) Insert user data
+                _ = try await client
+                    .from("users")
+                    .insert([
+                        "id": AnyJSON(userId),
+                        "first_name": AnyJSON(firstName),
+                        "last_name": AnyJSON(lastName),
+                        "email": AnyJSON(email)
+                    ])
+                    .execute()
 
-                isSignedUp = true
-                isLoading = false
+                DispatchQueue.main.async {
+                    isLoading = false
+                    // Switch the view to ContentView
+                    isSignedUp = true
+                }
             } catch {
-                isLoading = false
-                errorMessage = "\(error.localizedDescription)"
-                print("Signup Error: \(error)")
+                DispatchQueue.main.async {
+                    isLoading = false
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }
@@ -216,7 +204,14 @@ extension View {
 
 struct AccountCreationView_Previews: PreviewProvider {
     static var previews: some View {
-        AccountCreationView()
+        StatefulPreviewWrapper(false) { showSignIn in
+            StatefulPreviewWrapper(true) { showSignUp in
+                AccountCreationView(
+                    showSignIn: showSignIn,
+                    showSignUp: showSignUp
+                )
+            }
+        }
     }
 }
 
