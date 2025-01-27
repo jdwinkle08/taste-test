@@ -18,6 +18,7 @@ func cleanMarkdown(_ text: String) -> String {
 }
 
 struct ContentView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var messages: [Message] = [] // Array of messages
     @State private var currentMessage: String = "" // Current text input
     @State private var showSendButton: Bool = false // Controls send button visibility
@@ -31,21 +32,9 @@ struct ContentView: View {
     @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
     @State private var showRecommendationCards: Bool = true
-    @State private var isSignedOut = false
     @State private var showSignUp = false
-    @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
-        if isSignedOut {
-            if showSignUp {
-                AccountCreationView(
-                    showSignIn: .constant(true), // or .constant(false), depending on your flow
-                    showSignUp: $showSignUp
-                )
-            } else {
-                SignInView(showSignUp: $showSignUp)
-            }
-        } else {
             ZStack {
                 // Main Content
                 VStack {
@@ -286,13 +275,7 @@ struct ContentView: View {
                         // Sign Out Button
                         Button(action: {
                             Task {
-                                do {
-                                    try await SupabaseManager.shared.client.auth.signOut()
-                                    print("User signed out successfully!")
-                                    isSignedOut = true // Redirect to sign-in page
-                                } catch {
-                                    print("Error signing out: \(error.localizedDescription)")
-                                }
+                                authViewModel.signOut()
                             }
                         }) {
                             Text("Sign out")
@@ -391,9 +374,6 @@ struct ContentView: View {
                 }
             }
         }
-    }
-    
-    
     
     func handleImage(_ image: UIImage?) {
         guard let image = image else { return }

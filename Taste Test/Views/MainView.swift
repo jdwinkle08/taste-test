@@ -4,29 +4,30 @@ struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSignUp = false
     
-    init() {
-        print("MainView initialized. isSignedIn = \(AuthViewModel().isSignedIn)")
-    }
-
+    // Remove the init() since it creates a new instance of AuthViewModel
+    
     var body: some View {
         Group {
             if authViewModel.isSignedIn {
                 ContentView()
-                    .environmentObject(authViewModel)
+                // Remove .environmentObject(authViewModel) since it's already passed down from the parent
             } else {
                 if showSignUp {
                     AccountCreationView(
                         showSignIn: .constant(false),
                         showSignUp: $showSignUp
                     )
+                        .environmentObject(authViewModel) // Add this
                 } else {
                     SignInView(
                         showSignUp: $showSignUp,
                         onSignedIn: {
                             print("SignInView: onSignedIn called.")
-                            authViewModel.isSignedIn = true
+                            // authViewModel.isSignedIn will be set by the AuthViewModel.signIn() method
+                            // so you can remove setting it manually here
                         }
                     )
+                        .environmentObject(authViewModel) // Add this
                 }
             }
         }
