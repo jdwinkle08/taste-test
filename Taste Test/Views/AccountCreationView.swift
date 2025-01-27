@@ -59,7 +59,6 @@ struct AccountCreationView: View {
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
-                        .frame(maxWidth: .infinity)
                 } else {
                     Text("Sign Up")
                         .font(.headline)
@@ -71,9 +70,8 @@ struct AccountCreationView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .disabled(isLoading)
-//            .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
-            
+            .disabled(isLoading) // Only disable when loading
+
             // Navigation to Sign In
             Button(action: {
                 showSignIn = true
@@ -136,7 +134,7 @@ struct AccountCreationView: View {
 
                 DispatchQueue.main.async {
                     isLoading = false
-                    onSignedUp?()
+                    onSignedUp?() // Trigger the callback
                 }
             } catch {
                 DispatchQueue.main.async {

@@ -3,31 +3,64 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSignUp = false
-    
-    // Remove the init() since it creates a new instance of AuthViewModel
-    
+    @State private var showSignIn = false // Added to manage SignInView
+
     var body: some View {
         Group {
             if authViewModel.isSignedIn {
                 ContentView()
-                // Remove .environmentObject(authViewModel) since it's already passed down from the parent
             } else {
                 if showSignUp {
                     AccountCreationView(
-                        showSignIn: .constant(false),
-                        showSignUp: $showSignUp
-                    )
-                        .environmentObject(authViewModel) // Add this
-                } else {
-                    SignInView(
+                        showSignIn: $showSignIn,
                         showSignUp: $showSignUp,
-                        onSignedIn: {
-                            print("SignInView: onSignedIn called.")
-                            // authViewModel.isSignedIn will be set by the AuthViewModel.signIn() method
-                            // so you can remove setting it manually here
+                        onSignedUp: {
+                            print("MainView: onSignedUp called.")
+                            authViewModel.isSignedIn = true
                         }
                     )
-                        .environmentObject(authViewModel) // Add this
+                    .environmentObject(authViewModel)
+                } else if showSignIn {
+                    SignInView(
+                        showSignIn: $showSignIn, // Pass the binding
+                        showSignUp: $showSignUp,
+                        onSignedIn: {
+                            print("MainView: onSignedIn called.")
+                            authViewModel.isSignedIn = true
+                        }
+                    )
+                    .environmentObject(authViewModel)
+                } else {
+                    // Initial View: Choose to Sign In or Sign Up
+                    VStack(spacing: 20) {
+                        Text("Let's get started 🚀")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        Button(action: {
+                            showSignIn = true
+                        }) {
+                            Text("Sign In")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(width: 300, height: 50)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
+                        
+                        Button(action: {
+                            showSignUp = true
+                        }) {
+                            Text("Sign Up")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                                .frame(width: 300, height: 50)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.blue, lineWidth: 2)
+                                )
+                        }
+                    }
                 }
             }
         }
@@ -37,5 +70,6 @@ struct MainView: View {
         .onChange(of: authViewModel.isSignedIn) { newValue in
             print("MainView: isSignedIn changed to \(newValue)")
         }
+        .animation(.easeInOut, value: authViewModel.isSignedIn)
     }
 }

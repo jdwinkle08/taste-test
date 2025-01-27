@@ -58,9 +58,9 @@ final class AuthViewModel: ObservableObject {
             let response = try await supabaseManager.client
                 .from("users")
                 .select("first_name, last_name, email")
-                .eq("id", value: userIdString) // Ensure 'value:' label is used correctly
+                .eq("id", value: userIdString)
                 .single()
-                .execute() // Removed 'as: .object(User.self)'
+                .execute()
 
             // **Logging: Check the type of response.data**
             print("Type of response.data: \(type(of: response.data))")
@@ -146,9 +146,9 @@ final class AuthViewModel: ObservableObject {
             let response: PostgrestResponse<Data> = try await supabaseManager.client
                 .from("users")
                 .select("first_name, last_name, email")
-                .eq("id", value: userIdString) // Corrected 'eq' method usage
+                .eq("id", value: userIdString)
                 .single()
-                .execute() // Removed 'as: .object(User.self)'
+                .execute()
 
             // Decode the Data into User model
             let user = try JSONDecoder().decode(User.self, from: response.data)
