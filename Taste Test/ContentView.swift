@@ -62,13 +62,35 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Text("Hey, \(authViewModel.firstName) 👋")
-                            .font(.system(size: 18))
-                            .foregroundColor(.black)
+                        (
+                            Text("Hey, ")
+                                .font(.system(size: 18))
+                                .foregroundColor(.black) +
+                            Text("\(authViewModel.firstName) 👋")
+                                .font(.system(size: 18))
+                                .foregroundColor(.black)
+                                .bold()
+                        )
+                        .frame(maxWidth: .infinity, alignment: .center)
                         
-                        Spacer()
-                        
-                        Spacer().frame(width: 40)
+                        // Invisible Placeholder on the Right
+                        Button(action: {}) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Rectangle()
+                                    .frame(width: 24, height: 3) // Top line
+                                    .cornerRadius(1.5)
+                                Rectangle()
+                                    .frame(width: 24, height: 3) // Middle line
+                                    .cornerRadius(1.5)
+                                Rectangle()
+                                    .frame(width: 16, height: 3) // Bottom line (shorter)
+                                    .cornerRadius(1.5)
+                            }
+                            .foregroundColor(.blue)
+                            .padding(20)
+                        }
+                        .opacity(0) // Make the placeholder invisible
+                        .accessibilityHidden(true) // Optional: Hide from accessibility
                     }
                     .padding(.bottom, 8)
                     
