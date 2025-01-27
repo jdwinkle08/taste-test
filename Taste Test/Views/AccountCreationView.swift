@@ -9,12 +9,15 @@ struct AccountCreationView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isSignedUp = false
+    @State private var navigateToSignIn = false 
 
     var body: some View {
         NavigationView {
             if isSignedUp {
                 ContentView()
                     .navigationBarBackButtonHidden(true)
+            } else if navigateToSignIn {
+                SignInView()
             } else {
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
@@ -77,8 +80,18 @@ struct AccountCreationView: View {
                             }
                         }
                         .padding(.horizontal, 24)
-                        .padding(.bottom, 80)
+//                        .padding(.bottom, 80)
                         .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
+                        
+                        // Sign In Button
+                        Button(action: {
+                            navigateToSignIn = true
+                        }) {
+                            Text("Already have an account? Sign In")
+                                .font(.body)
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.bottom, 12)
                     }
                 }
                 .onAppear {
@@ -209,7 +222,7 @@ struct AccountCreationView_Previews: PreviewProvider {
 
 final class SupabaseManager {
     static let shared = SupabaseManager()
-
+    
     let client: SupabaseClient
 
     private init() {

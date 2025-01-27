@@ -31,332 +31,346 @@ struct ContentView: View {
     @State private var menuOpacity: Double = 0.0 // Initial opacity for the menu
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
     @State private var showRecommendationCards: Bool = true
+    @State private var isSignedOut = false
     
     var body: some View {
-        ZStack {
-            // Main Content
-            VStack {
-                // Header
-                HStack {
-                    Button(action: {
-                        withAnimation {
-                            isPaneOpen.toggle()
-                        }
-                    }) {
-                        Image(systemName: "line.horizontal.3")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.leading, 16)
-                    
-                    Spacer()
-                    
-                    Text("What are we having today? ☺️")
-                        .font(.system(size: 18))
-                        .foregroundColor(.black)
-                    
-                    Spacer()
-                    
-                    Spacer().frame(width: 40)
-                }
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-                
-                // Chat Window
-                ScrollViewReader { scrollViewProxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 6) {
-                            ForEach(messages) { message in
-                                if message.isImage, let image = message.image {
-                                    HStack {
-                                        Spacer()
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(maxWidth: 250)
-                                            .cornerRadius(20)
-                                            .padding(.horizontal, 8)
-                                    }
-                                } else {
-                                    HStack {
-                                        if message.isUser {
-                                            Spacer()
-                                            Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
-                                                .font(.system(size: 16))
-                                                .padding(.horizontal, 10)
-                                                .padding(.vertical, 8)
-                                                .background(Color.blue)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(20)
-                                                .frame(maxWidth: 250, alignment: .trailing)
-                                        } else {
-                                            Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
-                                                .font(.system(size: 16))
-                                                .padding(.horizontal, 10)
-                                                .padding(.vertical, 8)
-                                                .background(Color(.systemGray5))
-                                                .foregroundColor(.black)
-                                                .cornerRadius(20)
-                                                .frame(maxWidth: 250, alignment: .leading)
-                                                .multilineTextAlignment(.leading)
-                                            Spacer()
-                                        }
-                                    }
-                                    .padding(.horizontal, 8)
-                                }
-                            }
-                        }
-                        .padding(.top, 8)
-                        .id("BOTTOM") // Set a scroll marker
-                    }
-                    .onChange(of: messages) { _ in
-                        // Auto-scroll when a new message is added
-                        withAnimation {
-                            scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
-                        }
-                    }
-                }
-                
-                // Instruction Rectangles
-                if showRecommendationCards {
-                    HStack(spacing: 10) {
-                        Button(action: {
-                            isCameraActive = true
-                        }) {
-                            Text("First, take a photo of the menu ↗")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .cornerRadius(12)
-                                .scaleEffect(isCameraActive ? 0.95 : 1.0)
-                                .animation(.easeInOut(duration: 0.2), value: isCameraActive)
-                                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .fullScreenCover(isPresented: $isCameraActive) {
-                            ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
-                                handleImage(image)
-                            }
-                        }
-                        
-                        InstructionRectangle(
-                            text: "🥇 See the top choices",
-                            backgroundColor: Color(.systemGray5),
-                            textColor: Color.black,
-                            isBold: false
-                        )
-                        InstructionRectangle(
-                            text: "🧑‍🍳 Ask follow ups",
-                            backgroundColor: Color(.systemGray5),
-                            textColor: Color.black,
-                            isBold: false
-                        )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 16)
-                }
-                
-                // Input Box with Circular Button
-                HStack {
-                    Button(action: {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        // Close keyboard before showing menu
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
-                            isMenuVisible.toggle()
-                            if isMenuVisible {
-                                menuScale = 1.0
-                                menuOpacity = 1.0
-                            } else {
-                                menuScale = 0.8
-                                menuOpacity = 0.0
-                            }
-                        }
-                    }) {
-                        Circle()
-                            .fill(Color(.systemGray5))
-                            .frame(width: 35, height: 35)
-                            .overlay(
-                                Image(systemName: "plus")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 18))
-                            )
-                    }
-                    
-                    TextField("Type Message", text: $currentMessage)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color(.systemGray4), lineWidth: 1)
-                        )
-                        .autocorrectionDisabled(false)
-                        .textInputAutocapitalization(.sentences)
-                        .overlay(
-                            HStack {
-                                Spacer()
-                                if showSendButton {
-                                    Button(action: sendMessage) {
-                                        Image(systemName: "paperplane.fill")
-                                            .foregroundColor(.blue)
-                                            .padding(.trailing, 12)
-                                    }
-                                }
-                            }
-                        )
-                        .onChange(of: currentMessage) { newValue in
-                            showSendButton = !newValue.isEmpty
-                        }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-            }
-            .blur(radius: isMenuVisible ? 8 : 0)
-            
-            // Tap Outside to Close Menu
-            if isMenuVisible {
-                Color.black.opacity(0.01)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            isMenuVisible = false
-                        }
-                    }
-            }
-            
-            // Side Pane
-            if isPaneOpen {
-                Color.black.opacity(0.01)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            isPaneOpen = false
-                        }
-                    }
-            }
-
-            HStack {
+        if isSignedOut {
+            AccountCreationView() // Navigate back to the sign-in page
+        } else {
+            ZStack {
+                // Main Content
                 VStack {
-                    Spacer()
-
-                    // Settings Button
-                    Button(action: {
-                        print("Settings tapped!")
-                    }) {
-                        HStack {
-                            Image(systemName: "gear")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                            Text("Settings")
-                                .font(.headline)
-                                .foregroundColor(.gray)
+                    // Header
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                isPaneOpen.toggle()
+                            }
+                        }) {
+                            Image(systemName: "line.horizontal.3")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.leading, 16)
+                        
+                        Spacer()
+                        
+                        Text("What are we having today? ☺️")
+                            .font(.system(size: 18))
+                            .foregroundColor(.black)
+                        
+                        Spacer()
+                        
+                        Spacer().frame(width: 40)
+                    }
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
+                    
+                    // Chat Window
+                    ScrollViewReader { scrollViewProxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(messages) { message in
+                                    if message.isImage, let image = message.image {
+                                        HStack {
+                                            Spacer()
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(maxWidth: 250)
+                                                .cornerRadius(20)
+                                                .padding(.horizontal, 8)
+                                        }
+                                    } else {
+                                        HStack {
+                                            if message.isUser {
+                                                Spacer()
+                                                Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
+                                                    .font(.system(size: 16))
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 8)
+                                                    .background(Color.blue)
+                                                    .foregroundColor(.white)
+                                                    .cornerRadius(20)
+                                                    .frame(maxWidth: 250, alignment: .trailing)
+                                            } else {
+                                                Text(cleanMarkdown(message.text).trimmingCharacters(in: .whitespacesAndNewlines))
+                                                    .font(.system(size: 16))
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 8)
+                                                    .background(Color(.systemGray5))
+                                                    .foregroundColor(.black)
+                                                    .cornerRadius(20)
+                                                    .frame(maxWidth: 250, alignment: .leading)
+                                                    .multilineTextAlignment(.leading)
+                                                Spacer()
+                                            }
+                                        }
+                                        .padding(.horizontal, 8)
+                                    }
+                                }
+                            }
+                            .padding(.top, 8)
+                            .id("BOTTOM") // Set a scroll marker
+                        }
+                        .onChange(of: messages) { _ in
+                            // Auto-scroll when a new message is added
+                            withAnimation {
+                                scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
+                            }
+                        }
+                    }
+                    
+                    // Instruction Rectangles
+                    if showRecommendationCards {
+                        HStack(spacing: 10) {
+                            Button(action: {
+                                isCameraActive = true
+                            }) {
+                                Text("First, take a photo of the menu ↗")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .cornerRadius(12)
+                                    .scaleEffect(isCameraActive ? 0.95 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: isCameraActive)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .fullScreenCover(isPresented: $isCameraActive) {
+                                ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
+                                    handleImage(image)
+                                }
+                            }
+                            
+                            InstructionRectangle(
+                                text: "🥇 See the top choices",
+                                backgroundColor: Color(.systemGray5),
+                                textColor: Color.black,
+                                isBold: false
+                            )
+                            InstructionRectangle(
+                                text: "🧑‍🍳 Ask follow ups",
+                                backgroundColor: Color(.systemGray5),
+                                textColor: Color.black,
+                                isBold: false
+                            )
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.systemGray5))
-                        .cornerRadius(10)
                         .padding(.horizontal, 16)
                     }
-
-                    // Sign Out Button
-                    Button(action: {
-                        print("Sign out button tapped!")
-                    }) {
-                        Text("Sign out")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                    }
-                    .padding(.bottom, 32) // Add spacing at the bottom
-                }
-                .frame(width: 320)
-                .background(
-                    Color.white
-                        .cornerRadius(16, corners: [.topRight, .bottomRight])
-                        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
-                )
-                .edgesIgnoringSafeArea(.all)
-                Spacer()
-            }
-            .offset(x: isPaneOpen ? 0 : -320 + dragOffset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        let translation = value.translation.width
-                        dragOffset = max(-320, min(0, translation))
-                    }
-                    .onEnded { value in
-                        if dragOffset > -120 {
-                            withAnimation {
-                                isPaneOpen = true
+                    
+                    // Input Box with Circular Button
+                    HStack {
+                        Button(action: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            // Close keyboard before showing menu
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
+                                isMenuVisible.toggle()
+                                if isMenuVisible {
+                                    menuScale = 1.0
+                                    menuOpacity = 1.0
+                                } else {
+                                    menuScale = 0.8
+                                    menuOpacity = 0.0
+                                }
                             }
-                        } else {
+                        }) {
+                            Circle()
+                                .fill(Color(.systemGray5))
+                                .frame(width: 35, height: 35)
+                                .overlay(
+                                    Image(systemName: "plus")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 18))
+                                )
+                        }
+                        
+                        TextField("Type Message", text: $currentMessage)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .cornerRadius(20)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                            )
+                            .autocorrectionDisabled(false)
+                            .textInputAutocapitalization(.sentences)
+                            .overlay(
+                                HStack {
+                                    Spacer()
+                                    if showSendButton {
+                                        Button(action: sendMessage) {
+                                            Image(systemName: "paperplane.fill")
+                                                .foregroundColor(.blue)
+                                                .padding(.trailing, 12)
+                                        }
+                                    }
+                                }
+                            )
+                            .onChange(of: currentMessage) { newValue in
+                                showSendButton = !newValue.isEmpty
+                            }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                .blur(radius: isMenuVisible ? 8 : 0)
+                
+                // Tap Outside to Close Menu
+                if isMenuVisible {
+                    Color.black.opacity(0.01)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation {
+                                isMenuVisible = false
+                            }
+                        }
+                }
+                
+                // Side Pane
+                if isPaneOpen {
+                    Color.black.opacity(0.01)
+                        .ignoresSafeArea()
+                        .onTapGesture {
                             withAnimation {
                                 isPaneOpen = false
                             }
                         }
-                        dragOffset = 0
-                    }
-            )
-            .animation(.easeInOut, value: isPaneOpen)
-            
-            // Pop-up Menu
-            if isMenuVisible {
-                VStack(alignment: .leading, spacing: 30) {
-                    Button(action: {
-                        withAnimation {
-                            isMenuVisible = false
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            isCameraActive = true
-                        }
-                    }) {
-                        HStack(spacing: 22) {
-                            Image("cameraAppIcon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 36, height: 36)
-                            Text("Take a Picture")
-                                .foregroundColor(.black)
-                                .font(.system(size: 24))
-                        }
-                    }
-                    
-                    Button(action: {
-                        withAnimation {
-                            isMenuVisible = false
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            isPhotoPickerActive = true
-                        }
-                    }) {
-                        HStack(spacing: 22) {
-                            Image("photosAppIcon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 36, height: 36)
-                            Text("Upload a Photo")
-                                .foregroundColor(.black)
-                                .font(.system(size: 24))
-                        }
-                    }
                 }
-                .scaleEffect(menuScale)
-                .opacity(menuOpacity)
-                .frame(width: 250)
-                .position(x: 138, y: UIScreen.main.bounds.height - 218) // Adjust position
+                
+                HStack {
+                    VStack {
+                        Spacer()
+                        
+                        // Settings Button
+                        Button(action: {
+                            print("Sign out button tapped!")
+                            
+                        }) {
+                            HStack {
+                                Image(systemName: "gear")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                Text("Settings")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.systemGray5))
+                            .cornerRadius(10)
+                            .padding(.horizontal, 16)
+                        }
+                        
+                        // Sign Out Button
+                        Button(action: {
+                            Task {
+                                do {
+                                    try await SupabaseManager.shared.client.auth.signOut()
+                                    print("User signed out successfully!")
+                                    isSignedOut = true // Redirect to sign-in page
+                                } catch {
+                                    print("Error signing out: \(error.localizedDescription)")
+                                }
+                            }
+                        }) {
+                            Text("Sign out")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                        }
+                        .padding(.bottom, 32) // Add spacing at the bottom
+                    }
+                    .frame(width: 320)
+                    .background(
+                        Color.white
+                            .cornerRadius(16, corners: [.topRight, .bottomRight])
+                            .shadow(color: Color.black.opacity(0.15), radius: 6, x: 2, y: 0)
+                    )
+                    .edgesIgnoringSafeArea(.all)
+                    Spacer()
+                }
+                .offset(x: isPaneOpen ? 0 : -320 + dragOffset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            let translation = value.translation.width
+                            dragOffset = max(-320, min(0, translation))
+                        }
+                        .onEnded { value in
+                            if dragOffset > -120 {
+                                withAnimation {
+                                    isPaneOpen = true
+                                }
+                            } else {
+                                withAnimation {
+                                    isPaneOpen = false
+                                }
+                            }
+                            dragOffset = 0
+                        }
+                )
+                .animation(.easeInOut, value: isPaneOpen)
+                
+                // Pop-up Menu
+                if isMenuVisible {
+                    VStack(alignment: .leading, spacing: 30) {
+                        Button(action: {
+                            withAnimation {
+                                isMenuVisible = false
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                isCameraActive = true
+                            }
+                        }) {
+                            HStack(spacing: 22) {
+                                Image("cameraAppIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 36, height: 36)
+                                Text("Take a Picture")
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 24))
+                            }
+                        }
+                        
+                        Button(action: {
+                            withAnimation {
+                                isMenuVisible = false
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                isPhotoPickerActive = true
+                            }
+                        }) {
+                            HStack(spacing: 22) {
+                                Image("photosAppIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 36, height: 36)
+                                Text("Upload a Photo")
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 24))
+                            }
+                        }
+                    }
+                    .scaleEffect(menuScale)
+                    .opacity(menuOpacity)
+                    .frame(width: 250)
+                    .position(x: 138, y: UIScreen.main.bounds.height - 218) // Adjust position
+                }
             }
-        }
-        .sheet(isPresented: $isPhotoPickerActive) {
-            ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage, sourceType: .photoLibrary) { image in
-                handleImage(image)
+            .sheet(isPresented: $isPhotoPickerActive) {
+                ImagePicker(isPresented: $isPhotoPickerActive, selectedImage: $capturedImage, sourceType: .photoLibrary) { image in
+                    handleImage(image)
+                }
             }
         }
     }
