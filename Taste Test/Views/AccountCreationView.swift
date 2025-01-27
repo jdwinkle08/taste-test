@@ -71,7 +71,8 @@ struct AccountCreationView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
+            .disabled(isLoading)
+//            .disabled(isLoading || email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty)
             
             // Navigation to Sign In
             Button(action: {
