@@ -63,13 +63,14 @@ struct ContentView: View {
                         Spacer()
                         
                         (
-                            Text("Hey, ")
+                            Text("Hey ")
                                 .font(.system(size: 18))
                                 .foregroundColor(.black) +
-                            Text("\(authViewModel.firstName) 👋")
+//                            Text("\(authViewModel.firstName) 👋")
+                            Text("there 👋")
                                 .font(.system(size: 18))
                                 .foregroundColor(.black)
-                                .bold()
+//                                .bold()
                         )
                         .frame(maxWidth: .infinity, alignment: .center)
                         
@@ -275,24 +276,24 @@ struct ContentView: View {
                         Spacer()
                         
                         // Settings Button
-                        Button(action: {
-                            print("Sign out button tapped!")
-                            
-                        }) {
-                            HStack {
-                                Image(systemName: "gear")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
-                                Text("Settings")
-                                    .font(.headline)
-                                    .foregroundColor(.gray)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray5))
-                            .cornerRadius(10)
-                            .padding(.horizontal, 16)
-                        }
+//                        Button(action: {
+//                            print("Sign out button tapped!")
+//                            
+//                        }) {
+//                            HStack {
+//                                Image(systemName: "gear")
+//                                    .font(.system(size: 16))
+//                                    .foregroundColor(.gray)
+//                                Text("Settings")
+//                                    .font(.headline)
+//                                    .foregroundColor(.gray)
+//                            }
+//                            .frame(maxWidth: .infinity)
+//                            .padding()
+//                            .background(Color(.systemGray5))
+//                            .cornerRadius(10)
+//                            .padding(.horizontal, 16)
+//                        }
                         
                         // Sign Out Button
                         Button(action: {
