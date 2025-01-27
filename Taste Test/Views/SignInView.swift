@@ -2,12 +2,10 @@ import SwiftUI
 import Supabase
 
 struct SignInView: View {
-    /// Controls whether we switch to the sign-up screen
+    @EnvironmentObject var authViewModel: AuthViewModel // Use AuthViewModel
     @Binding var showSignUp: Bool
-    
-    /// A callback to inform the parent (e.g. MainView) that sign-in succeeded
-    var onSignedIn: (() -> Void)? = nil
-    
+    var onSignedIn: (() -> Void)? = nil // Callback when signed in
+
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
@@ -15,6 +13,7 @@ struct SignInView: View {
 
     var body: some View {
         ZStack {
+            Text("Sign In View: isSignedIn = \(authViewModel.isSignedIn.description)")
             Color.white.edgesIgnoringSafeArea(.all)
 
             VStack(spacing: 24) {
@@ -73,7 +72,7 @@ struct SignInView: View {
 
                 // Create Account Button
                 Button(action: {
-                    showSignUp = true
+                    showSignUp = true // Navigate to AccountCreationView
                 }) {
                     Text("Don't have an account? Create one")
                         .font(.body)
@@ -94,27 +93,15 @@ struct SignInView: View {
         errorMessage = nil
 
         Task {
-            do {
-                let client = SupabaseManager.shared.client
-
-                // Attempt to sign in — returns a Session directly
-                let session = try await client.auth.signIn(email: email, password: password)
-
-                // Store the Session
-                SupabaseManager.shared.storeSessionInUserDefaults(session)
-
-                // Access the user if you want
-                let user = session.user
-                print("User signed in successfully. ID: \(user.id)")
-
-                DispatchQueue.main.async {
-                    isLoading = false
-                    onSignedIn?() // Let parent know sign-in succeeded
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    errorMessage = "Sign in failed: \(error.localizedDescription)"
-                    isLoading = false
+            let success = await authViewModel.signIn(email: email, password: password)
+            DispatchQueue.main.async {
+                isLoading = false
+                if success {
+                    // Sign-in succeeded, isSignedIn will update automatically
+                    print("authViewModel: \(success)")
+                    print("User signed in successfully.")
+                } else {
+                    errorMessage = "Sign in failed. Please check your credentials."
                 }
             }
         }

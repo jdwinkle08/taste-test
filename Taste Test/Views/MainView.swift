@@ -1,36 +1,39 @@
-//
-//  MainView.swift
-//  Taste Test
-//
-//  Created by Jeff Winkle on 1/26/25.
-//
-
 import SwiftUI
 
 struct MainView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel // tracks isSignedIn
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSignUp = false
+    
+    init() {
+        print("MainView initialized. isSignedIn = \(AuthViewModel().isSignedIn)")
+    }
 
     var body: some View {
-        if authViewModel.isSignedIn {
-            // Logged-in content
-            ContentView()
-        } else {
-            // Not logged in; decide if we’re signing in or signing up
-            if showSignUp {
-                AccountCreationView(
-                    showSignIn: .constant(false),
-                    showSignUp: $showSignUp
-                )
+        Group {
+            if authViewModel.isSignedIn {
+                ContentView()
             } else {
-                SignInView(
-                  showSignUp: $showSignUp,
-                  onSignedIn: {
-                    // Tells MainView (or AuthViewModel) we’re now signed in
-                    authViewModel.isSignedIn = true
-                  }
-                )
+                if showSignUp {
+                    AccountCreationView(
+                        showSignIn: .constant(false),
+                        showSignUp: $showSignUp
+                    )
+                } else {
+                    SignInView(
+                        showSignUp: $showSignUp,
+                        onSignedIn: {
+                            print("SignInView: onSignedIn called.")
+                            authViewModel.isSignedIn = true
+                        }
+                    )
+                }
             }
+        }
+        .onAppear {
+            print("MainView appeared. isSignedIn = \(authViewModel.isSignedIn)")
+        }
+        .onChange(of: authViewModel.isSignedIn) { newValue in
+            print("MainView: isSignedIn changed to \(newValue)")
         }
     }
 }

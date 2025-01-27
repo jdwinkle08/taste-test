@@ -55,11 +55,20 @@ struct ContentView: View {
                                 isPaneOpen.toggle()
                             }
                         }) {
-                            Image(systemName: "line.horizontal.3")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.blue)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Rectangle()
+                                    .frame(width: 24, height: 3) // Top line
+                                    .cornerRadius(1.5)
+                                Rectangle()
+                                    .frame(width: 24, height: 3) // Middle line
+                                    .cornerRadius(1.5)
+                                Rectangle()
+                                    .frame(width: 16, height: 3) // Bottom line (shorter)
+                                    .cornerRadius(1.5)
+                            }
+                            .foregroundColor(.blue)
+                            .padding(20)
                         }
-                        .padding(.leading, 16)
                         
                         Spacer()
                         
@@ -71,7 +80,6 @@ struct ContentView: View {
                         
                         Spacer().frame(width: 40)
                     }
-                    .padding(.top, 16)
                     .padding(.bottom, 8)
                     
                     // Chat Window
@@ -196,31 +204,32 @@ struct ContentView: View {
                                 )
                         }
                         
-                        TextField("Type Message", text: $currentMessage)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .cornerRadius(20)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color(.systemGray4), lineWidth: 1)
-                            )
-                            .autocorrectionDisabled(false)
-                            .textInputAutocapitalization(.sentences)
-                            .overlay(
-                                HStack {
-                                    Spacer()
-                                    if showSendButton {
-                                        Button(action: sendMessage) {
-                                            Image(systemName: "paperplane.fill")
-                                                .foregroundColor(.blue)
-                                                .padding(.trailing, 12)
-                                        }
+                        ZStack(alignment: .leading) {
+                            TextField("Type Message", text: $currentMessage)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .padding(.trailing, 30) // Reserve space for the "Send" button
+                                .cornerRadius(20)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                        }
+                        .overlay(
+                            HStack {
+                                Spacer()
+                                if showSendButton {
+                                    Button(action: sendMessage) {
+                                        Image(systemName: "paperplane.fill")
+                                            .foregroundColor(.blue)
+                                            .padding(.trailing, 12)
                                     }
                                 }
-                            )
-                            .onChange(of: currentMessage) { newValue in
-                                showSendButton = !newValue.isEmpty
                             }
+                        )
+                        .onChange(of: currentMessage) { newValue in
+                            showSendButton = !newValue.isEmpty
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
