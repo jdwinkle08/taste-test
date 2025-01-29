@@ -15,17 +15,11 @@ struct SignInView: View {
         VStack(spacing: 24) {
             // Logo and Welcome Text
             VStack(spacing: 16) {
-                Image(systemName: "person.circle.fill")
+                Image("mainLogo")
                     .resizable()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(.blue)
-    
-                Text("Welcome Back 👋")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
+                    .scaledToFit()
+                    .frame(width: 240, height: 240)
             }
-            .padding(.top, 40)
             
             // Input Fields
             VStack(spacing: 10) {
@@ -59,6 +53,7 @@ struct SignInView: View {
                 }
             }
             .padding(.horizontal, 24)
+            .padding(.bottom, 4)
             .disabled(isLoading) // Only disable when loading
             
             // Navigation to Sign Up

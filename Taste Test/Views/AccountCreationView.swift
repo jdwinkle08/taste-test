@@ -22,17 +22,17 @@ struct AccountCreationView: View {
         VStack(spacing: 24) {
             // Logo and Welcome Text
             VStack(spacing: 16) {
-                Image(systemName: "person.circle.fill")
+                Image("mainLogo")
                     .resizable()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(.blue)
+                    .scaledToFit()
+                    .frame(width: 240, height: 240) // Adjust size as needed
 
-                Text("Welcome 👋")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
+//                Text("Create New Account")
+//                    .font(.title)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(.black)
             }
-            .padding(.top, 40)
+//            .padding(.top, 40)
             
             // Input Fields
             VStack(spacing: 10) {

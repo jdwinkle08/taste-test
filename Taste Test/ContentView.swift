@@ -3,6 +3,36 @@ import AVFoundation
 import PhotosUI
 import Vision
 import Down
+import Combine
+
+final class KeyboardResponder: ObservableObject {
+    @Published var currentHeight: CGFloat = 0
+
+    private var cancellableSet: Set<AnyCancellable> = []
+
+    init() {
+        let keyboardShow = NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)
+        let keyboardHide = NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+
+        Publishers.Merge(keyboardShow, keyboardHide)
+            .compactMap { notification in
+                if let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    let screenHeight = UIScreen.main.bounds.height
+                    return screenHeight - frame.origin.y
+                }
+                return 0
+            }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] height in
+                self?.currentHeight = height
+            }
+            .store(in: &cancellableSet)
+    }
+
+    deinit {
+        cancellableSet.forEach { $0.cancel() }
+    }
+}
 
 func cleanMarkdown(_ text: String) -> String {
     var cleanedText = text
@@ -19,6 +49,7 @@ func cleanMarkdown(_ text: String) -> String {
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @ObservedObject private var keyboard = KeyboardResponder()
     @State private var messages: [Message] = [] // Array of messages
     @State private var currentMessage: String = "" // Current text input
     @State private var showSendButton: Bool = false // Controls send button visibility
@@ -36,11 +67,13 @@ struct ContentView: View {
     
     var body: some View {
             ZStack {
+                Color.white.edgesIgnoringSafeArea(.all)
                 // Main Content
                 VStack {
                     // Header
                     HStack {
                         Button(action: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             withAnimation {
                                 isPaneOpen.toggle()
                             }
@@ -62,19 +95,14 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        (
-                            Text("Hey ")
-                                .font(.system(size: 18))
-                                .foregroundColor(.black) +
-//                            Text("\(authViewModel.firstName) 👋")
-                            Text("there 👋")
-                                .font(.system(size: 18))
-                                .foregroundColor(.black)
-//                                .bold()
-                        )
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        // Replace the greeting text with the company logo
+                        Image("mainLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 108, height: 36) // Adjust size as needed
+                            .frame(maxWidth: .infinity, alignment: .center) // Ensure centering
                         
-                        // Invisible Placeholder on the Right
+                        // Invisible placeholder for alignment
                         Button(action: {}) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Rectangle()
@@ -94,6 +122,7 @@ struct ContentView: View {
                         .accessibilityHidden(true) // Optional: Hide from accessibility
                     }
                     .padding(.bottom, 8)
+                    
                     
                     // Chat Window
                     ScrollViewReader { scrollViewProxy in
@@ -140,12 +169,25 @@ struct ContentView: View {
                                 }
                             }
                             .padding(.top, 8)
+//                            .padding(.bottom, keyboard.currentHeight) // Adjust for keyboard height
                             .id("BOTTOM") // Set a scroll marker
+                        }
+                        .onAppear {
+                            // Scroll to the bottom when the view initially appears
+                            scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
                         }
                         .onChange(of: messages) { _ in
                             // Auto-scroll when a new message is added
                             withAnimation {
                                 scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
+                            }
+                        }
+                        .onChange(of: keyboard.currentHeight) { _ in
+                            // Scroll to the bottom when the keyboard height changes
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation {
+                                    scrollViewProxy.scrollTo("BOTTOM", anchor: .bottom)
+                                }
                             }
                         }
                     }
@@ -227,6 +269,14 @@ struct ContentView: View {
                                     RoundedRectangle(cornerRadius: 20)
                                         .stroke(Color(.systemGray4), lineWidth: 1)
                                 )
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            if value.translation.height > 0 { // Detect downward swipe
+                                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                            }
+                                        }
+                                )
                         }
                         .overlay(
                             HStack {
@@ -273,12 +323,20 @@ struct ContentView: View {
                 
                 HStack {
                     VStack {
+                        // Add the logo to the top of the side pane
+                        Image("mainLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 180, height: 60) // Adjust size as needed
+                            .padding(.top, 16) // Minimum padding
+                            .padding(.top, UIApplication.safeAreaTopInset)
+                            .padding(.bottom, 20) // Add spacing below the logo
+
                         Spacer()
                         
                         // Settings Button
 //                        Button(action: {
-//                            print("Sign out button tapped!")
-//                            
+//                            print("Settings button tapped!")
 //                        }) {
 //                            HStack {
 //                                Image(systemName: "gear")

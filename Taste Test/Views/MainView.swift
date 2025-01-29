@@ -33,14 +33,16 @@ struct MainView: View {
                 } else {
                     // Initial View: Choose to Sign In or Sign Up
                     VStack(spacing: 20) {
-                        Text("Let's get started 🚀")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        
+                        Image("mainLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 240, height: 240) // Adjust size as needed
+//                            .padding(.bottom, 20) // Add spacing from the buttons
+                    
                         Button(action: {
-                            showSignIn = true
+                            showSignUp = true
                         }) {
-                            Text("Sign In")
+                            Text("Sign Up")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(width: 300, height: 50)
@@ -49,9 +51,9 @@ struct MainView: View {
                         }
                         
                         Button(action: {
-                            showSignUp = true
+                            showSignIn = true
                         }) {
-                            Text("Sign Up")
+                            Text("Sign In")
                                 .font(.headline)
                                 .foregroundColor(.blue)
                                 .frame(width: 300, height: 50)
