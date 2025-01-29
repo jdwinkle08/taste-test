@@ -64,6 +64,7 @@ struct ContentView: View {
     @State private var isPhotoPickerActive: Bool = false // Photo picker activation state
     @State private var showRecommendationCards: Bool = true
     @State private var showSignUp = false
+    @State private var isTyping: Bool = false // Tracks if the system is "typing"
     
     var body: some View {
             ZStack {
@@ -166,6 +167,13 @@ struct ContentView: View {
                                         }
                                         .padding(.horizontal, 8)
                                     }
+                                }
+                                if isTyping {
+                                    HStack {
+                                        TypingIndicatorView()
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 8)
                                 }
                             }
                             .padding(.top, 8)
@@ -423,6 +431,12 @@ struct ContentView: View {
                                     .font(.system(size: 24))
                             }
                         }
+                        .fullScreenCover(isPresented: $isCameraActive) {
+                            ImagePicker(isPresented: $isCameraActive, selectedImage: $capturedImage, sourceType: .camera) { image in
+                                handleImage(image)
+                            }
+                            .ignoresSafeArea()
+                        }
                         
                         Button(action: {
                             withAnimation {
@@ -530,8 +544,9 @@ struct ContentView: View {
     }
     
     func callOpenAIAPI(for message: String, isUserMessage: Bool = true) {
-
         isLoading = true
+        isTyping = true
+        
         guard let apiKey = Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String else {
             fatalError("API Key not found in Secrets.xcconfig")
         }
@@ -588,6 +603,7 @@ struct ContentView: View {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
+                isTyping = false
                 isLoading = false
             }
 
@@ -641,7 +657,7 @@ struct InstructionRectangle: View {
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     @Binding var selectedImage: UIImage?
-    var sourceType: UIImagePickerController.SourceType
+    var sourceType: UIImagePickerController.SourceType = .camera
     var onImagePicked: (UIImage?) -> Void
 
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
@@ -672,6 +688,9 @@ struct ImagePicker: UIViewControllerRepresentable {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
         picker.sourceType = sourceType
+
+        // Set full screen presentation
+        picker.modalPresentationStyle = .fullScreen
         return picker
     }
 
@@ -728,3 +747,33 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
+
+    struct TypingIndicatorView: View {
+        @State private var isAnimating = false
+
+        var body: some View {
+            HStack(spacing: 6) {
+                Circle()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(.gray)
+                    .scaleEffect(isAnimating ? 0.5 : 1.0)
+                    .animation(.easeInOut(duration: 0.6).repeatForever(), value: isAnimating)
+                Circle()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(.gray)
+                    .scaleEffect(isAnimating ? 0.5 : 1.0)
+                    .animation(.easeInOut(duration: 0.6).repeatForever().delay(0.2), value: isAnimating)
+                Circle()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(.gray)
+                    .scaleEffect(isAnimating ? 0.5 : 1.0)
+                    .animation(.easeInOut(duration: 0.6).repeatForever().delay(0.4), value: isAnimating)
+            }
+            .onAppear {
+                isAnimating = true
+            }
+            .onDisappear {
+                isAnimating = false
+            }
+        }
+    }
